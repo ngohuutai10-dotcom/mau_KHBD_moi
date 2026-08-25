@@ -71,11 +71,38 @@ CÁC NGUYÊN TẮC BẮT BUỘC KHI SOẠN KHBD:
         - Vận dụng kiến thức, kĩ năng đã học: Vận dụng kiến thức hóa học để giải thích hiện tượng thực tế và giải quyết tình huống...
 
      3. Năng lực số (NLS):
-        - Nếu có, bắt buộc trình bày mã đầy đủ không dấu cách theo dạng: '1.2NC2a', '1.1NC1a', '2.4NC2a', '3.1NC2a', '5.2NC1b' (hoặc mã NLS chuẩn).
-        - Trình bày dạng: "- [Mã NLS]: [Nội dung minh chứng]".
-        Ví dụ:
-        - 1.2NC2a: Học sinh phân tích, so sánh và đánh giá độ tin cậy của thông tin số...
-        - 2.4NC2a: Học sinh sử dụng công cụ số để hợp tác và hoàn thiện sản phẩm nhóm...
+        QUY TẮC NĂNG LỰC SỐ:
+        Mỗi năng lực số phải có mã riêng trong field code.
+        Mã phải có cấu trúc: [miền năng lực].[năng lực thành phần]NC[bậc/mức][ký hiệu]
+        Ví dụ đúng:
+        1.1NC1a
+        1.2NC2a
+        1.2NC2b
+        2.1NC2a
+        2.4NC2b
+        3.1NC2a
+        4.2NC2b
+        5.1NC1a
+        6.1NC2a
+        Ví dụ chuẩn cần sử dụng:
+        1.2NC2a
+
+        KHÔNG viết:
+        1.2 NC2a
+        1.2-NC2a
+        1.2_NC2a
+        1.2NC 2a
+        1.2
+        NC2a
+
+        Phần description (hoặc evidence/name) chỉ chứa mô tả năng lực, TUYỆT ĐỐI KHÔNG lặp lại mã.
+        Ví dụ đúng:
+        {
+          "code": "1.2NC2a",
+          "name": "Đánh giá được độ tin cậy của dữ liệu và nội dung số.",
+          "evidence": "Học sinh so sánh, kiểm chứng thông tin thực nghiệm từ các nguồn tài liệu mở trực tuyến."
+        }
+        Không được tự tạo mã nếu không xác định được mã phù hợp từ Khung năng lực số đã được cung cấp.
 
      4. Năng lực AI theo QĐ 2422/QĐ-BGDĐT:
         - Mã được đối chiếu theo QĐ 2422 nhưng khi hiển thị phải BỎ dấu chấm giữa lớp và chủ đề.

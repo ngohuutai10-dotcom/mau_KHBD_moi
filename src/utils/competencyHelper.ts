@@ -9,13 +9,11 @@ export function formatAICode(code: string): string {
     .replace(/^(\d{1,2})\.([A-D]\d)\.(MR\d+|\d+)$/i, "$1$2.$3");
 }
 
-export function formatDigitalCompetencyCode(code: string): string {
-  if (!code) return "";
-  return code
-    .trim()
-    .replace(/\s+/g, "")
-    .replace(/-/g, "");
-}
+export {
+  formatDigitalCompetencyCode,
+  isValidDigitalCompetencyCode,
+  cleanDigitalCompetencyDescription
+} from "./digitalCompetencyCode";
 
 export function removeLegacyCompetencyCode(text: string): string {
   if (!text) return "";

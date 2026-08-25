@@ -20,6 +20,7 @@ import type { LessonPlan, LearningActivity, Worksheet, Rubric } from "../types";
 import {
   formatAICode,
   formatDigitalCompetencyCode,
+  cleanDigitalCompetencyDescription,
   removeLegacyCompetencyCode,
   removePhasePrefix,
   cleanBigQuestion,
@@ -803,7 +804,7 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   const createDigitalCompetencyParagraph = (code: string, description: string): Paragraph => {
     const displayCode = formatDigitalCompetencyCode(code);
     const rawDesc = removeLegacyCompetencyCode(description);
-    const cleanDescription = cleanCompetencyDescription(displayCode, rawDesc);
+    const cleanDescription = cleanDigitalCompetencyDescription(displayCode, rawDesc);
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       spacing: { line: defaultLineSpacing, before: 0, after: 0 },

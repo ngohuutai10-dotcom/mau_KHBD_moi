@@ -26,6 +26,7 @@ import { exportLessonPlanToDocx } from "../utils/docxExport";
 import {
   formatAICode,
   formatDigitalCompetencyCode,
+  cleanDigitalCompetencyDescription,
   removeLegacyCompetencyCode,
   removePhasePrefix,
   cleanBigQuestion,
@@ -177,7 +178,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
       p.objectives.competencies.digitalCompetencies.forEach((dc) => {
         const code = formatDigitalCompetencyCode(dc.code);
         const rawDesc = removeLegacyCompetencyCode(dc.evidence || dc.name);
-        const desc = cleanCompetencyDescription(code, rawDesc);
+        const desc = cleanDigitalCompetencyDescription(code, rawDesc);
         md += `- **${code}:** ${desc}\n`;
       });
     }
@@ -516,7 +517,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                       {plan.objectives.competencies.digitalCompetencies.map((dc, idx) => {
                         const code = formatDigitalCompetencyCode(dc.code);
                         const rawDesc = removeLegacyCompetencyCode(dc.evidence || dc.name);
-                        const cleanDescription = cleanCompetencyDescription(code, rawDesc);
+                        const cleanDescription = cleanDigitalCompetencyDescription(code, rawDesc);
                         return (
                           <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
                             <span className="text-blue-600 shrink-0">-</span>
