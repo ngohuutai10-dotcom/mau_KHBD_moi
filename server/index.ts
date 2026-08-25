@@ -300,7 +300,7 @@ app.get("/api/reference", (_req, res) => {
 });
 
 // Generate Lesson Plan API
-app.post("/api/generate", upload.array("files", 8), async (req, res) => {
+app.post("/api/generate", upload.array("files", 8) as any, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

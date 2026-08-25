@@ -54,7 +54,7 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   const createBorderedCell = (
     children: Paragraph[],
     width?: number,
-    align: AlignmentType = AlignmentType.LEFT
+    align: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT
   ): TableCell => {
     return new TableCell({
       width: width
@@ -75,6 +75,43 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
         color: "auto"
       },
       children
+    });
+  };
+
+  const createHeaderCell = (text: string, width?: number): TableCell => {
+    return new TableCell({
+      width: width
+        ? {
+            size: width,
+            type: WidthType.PERCENTAGE
+          }
+        : undefined,
+      borders: {
+        top: TABLE_BORDER,
+        bottom: TABLE_BORDER,
+        left: TABLE_BORDER,
+        right: TABLE_BORDER
+      },
+      shading: {
+        type: ShadingType.CLEAR,
+        fill: "FFFFFF",
+        color: "auto"
+      },
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { line: defaultLineSpacing, before: 60, after: 60 },
+          children: [
+            new TextRun({
+              text,
+              font,
+              size: defaultSize,
+              bold: true,
+              color: "000000"
+            })
+          ]
+        })
+      ]
     });
   };
 
@@ -1115,9 +1152,10 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     );
 
     docChildren.push(
-      pMixed([
-        { text: "d) Tổ chức thực hiện:", bold: true, spaceAfter: 40 }
-      ])
+      pMixed(
+        [{ text: "d) Tổ chức thực hiện:", bold: true }],
+        { spaceAfter: 40 }
+      )
     );
 
     // 3-Column Organization Table for Teacher, Student and Board Content (36% / 36% / 28%)
