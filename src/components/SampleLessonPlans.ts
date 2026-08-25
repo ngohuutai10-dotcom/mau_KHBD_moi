@@ -82,24 +82,24 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
       ],
       digitalCompetencies: [
         {
-          code: "NLS3.2",
+          code: "3.2NC2a",
           name: "Sử dụng phần mềm và mô phỏng số",
           evidence: "Sử dụng mô phỏng PhET Reversible Reactions để quan sát biến thiên số lượng phân tử ở cấp độ vi mô."
         },
         {
-          code: "NLS5.1",
+          code: "5.1NC2a",
           name: "Xử lý dữ liệu số",
           evidence: "Sử dụng bảng tính tính toán giá trị Kc và vẽ đồ thị nồng độ theo thời gian."
         }
       ],
       aiCompetencies: [
         {
-          code: "AI2.1",
+          code: "11C2.1",
           name: "Tra cứu và tổng hợp thông tin với AI",
           evidence: "Học sinh dùng trợ lí AI để tra cứu các ứng dụng thực tế của chuyển dịch cân bằng trong sản xuất đồ uống có ga."
         },
         {
-          code: "AI3.1",
+          code: "11C3.1",
           name: "Kiểm chứng và tư duy phản biện với AI",
           evidence: "Đối chiếu câu trả lời của AI về vai trò của chất xúc tác trong cân bằng hóa học với định luật bảo toàn."
         }
@@ -556,46 +556,78 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
       {
         id: "ws_1",
         title: "PHIẾU HỌC TẬP SỐ 1: KHÁM PHÁ CÂN BẰNG ĐỘNG",
-        content: `Câu 1: Điền vào chỗ trống: Phản ứng thuận nghịch là phản ứng trong cùng điều kiện, xảy ra đồng thời theo hai chiều ..........................
-Câu 2: Dựa vào đồ thị phản ứng H2 + I2 ⇌ 2HI, hãy mô tả:
-- Tốc độ phản ứng thuận vt biến đổi như thế nào theo thời gian?
-- Tốc độ phản ứng nghịch vn biến đổi như thế nào theo thời gian?
-- Điểm đặc biệt tại thời điểm t_cb là gì?
-Câu 3: Giải thích tại sao cân bằng hóa học là cân bằng động mà không phải cân bằng tĩnh?`,
-        keyAnswer: `Đáp án:
-1. ...ngược nhau.
-2. vt giảm dần; vn tăng dần; tại t_cb thì vt = vn > 0.
-3. Vì tại trạng thái cân bằng, phản ứng thuận và nghịch vẫn liên tục diễn ra với tốc độ bằng nhau nên nồng độ các chất trong hệ không đổi theo thời gian.`
+        activityName: "Nghiên cứu khái niệm phản ứng thuận nghịch và trạng thái cân bằng",
+        tasks: [
+          {
+            title: "Nhiệm vụ 1: Khái niệm phản ứng thuận nghịch",
+            instruction: "Quan sát thí nghiệm mô phỏng và hoàn thành câu hỏi dưới đây:",
+            questions: [
+              "Điền vào chỗ trống: Phản ứng thuận nghịch là phản ứng trong cùng điều kiện, xảy ra đồng thời theo hai chiều .........................."
+            ]
+          },
+          {
+            title: "Nhiệm vụ 2: Phân tích động học cân bằng",
+            instruction: "Dựa vào đồ thị biến thiên tốc độ phản ứng H2 + I2 ⇌ 2HI theo thời gian:",
+            questions: [
+              "Tốc độ phản ứng thuận vt biến đổi như thế nào theo thời gian?",
+              "Tốc độ phản ứng nghịch vn biến đổi như thế nào theo thời gian?",
+              "Điểm đặc biệt tại thời điểm cân bằng t_cb là gì?",
+              "Giải thích tại sao cân bằng hóa học là cân bằng động mà không phải cân bằng tĩnh?"
+            ]
+          }
+        ],
+        teacherAnswerKey: `1. ...ngược nhau.\n2. vt giảm dần; vn tăng dần; tại t_cb thì vt = vn > 0.\n3. Vì tại trạng thái cân bằng, phản ứng thuận và nghịch vẫn liên tục diễn ra với tốc độ bằng nhau nên nồng độ các chất trong hệ không đổi.`
       },
       {
         id: "ws_2",
         title: "PHIẾU HỌC TẬP SỐ 2: HẰNG SỐ CÂN BẰNG KC",
-        content: `Viết biểu thức tính hằng số cân bằng Kc cho các phản ứng sau:
-1. N2(g) + 3H2(g) ⇌ 2NH3(g)
-2. 2SO2(g) + O2(g) ⇌ 2SO3(g)
-3. CaCO3(s) ⇌ CaO(s) + CO2(g)
-4. Fe2O3(s) + 3CO(g) ⇌ 2Fe(s) + 3CO2(g)`,
-        keyAnswer: `1. Kc = [NH3]^2 / ([N2] * [H2]^3)
-2. Kc = [SO3]^2 / ([SO2]^2 * [O2])
-3. Kc = [CO2] (chất rắn CaCO3 và CaO không có mặt trong biểu thức)
-4. Kc = [CO2]^3 / [CO]^3`
+        activityName: "Xác lập biểu thức hằng số cân bằng Kc",
+        tasks: [
+          {
+            title: "Nhiệm vụ: Thiết lập biểu thức Kc",
+            instruction: "Viết biểu thức tính hằng số cân bằng Kc cho các hệ phản ứng đồng thể và dị thể sau:",
+            questions: [
+              "N2(g) + 3H2(g) ⇌ 2NH3(g)",
+              "2SO2(g) + O2(g) ⇌ 2SO3(g)",
+              "CaCO3(s) ⇌ CaO(s) + CO2(g)",
+              "Fe2O3(s) + 3CO(g) ⇌ 2Fe(s) + 3CO2(g)"
+            ]
+          }
+        ],
+        teacherAnswerKey: `1. Kc = [NH3]^2 / ([N2] * [H2]^3)\n2. Kc = [SO3]^2 / ([SO2]^2 * [O2])\n3. Kc = [CO2]\n4. Kc = [CO2]^3 / [CO]^3`
       },
       {
         id: "ws_3",
         title: "PHIẾU HỌC TẬP SỐ 3: DỰ ĐOÁN CHIỀU CHUYỂN DỊCH CÂN BẰNG",
-        content: `Cho cân bằng: 2SO2(g) + O2(g) ⇌ 2SO3(g)   delta rH298 = -198 kJ
-Dự đoán chiều chuyển dịch cân bằng (sang chiều thuận hay chiều nghịch) khi:
-a) Tăng nồng độ khí O2
-b) Giảm nhiệt độ của hệ
-c) Tăng áp suất chung của hệ
-d) Thêm chất xúc tác V2O5`,
-        keyAnswer: `a) Chiều thuận (để làm giảm nồng độ O2)
-b) Chiều thuận (phản ứng tỏa nhiệt delta H < 0, hạ nhiệt độ làm cân bằng chuyển dịch theo chiều tỏa nhiệt)
-c) Chiều thuận (chiều giảm số mol khí: 3 mol khí -> 2 mol khí)
-d) Cân bằng KHÔNG chuyển dịch (chất xúc tác chỉ làm tăng tốc độ đạt cân bằng)`
+        activityName: "Vận dụng nguyên lí Le Chatelier",
+        tasks: [
+          {
+            title: "Nhiệm vụ: Phân tích yếu tố ảnh hưởng",
+            instruction: "Cho cân bằng: 2SO2(g) + O2(g) ⇌ 2SO3(g) (delta rH298 = -198 kJ). Dự đoán chiều chuyển dịch khi:",
+            questions: [
+              "Tăng nồng độ khí O2 trong bình phản ứng",
+              "Giảm nhiệt độ của hệ phản ứng",
+              "Tăng áp suất chung của toàn hệ",
+              "Thêm chất xúc tác V2O5 vào hỗn hợp"
+            ]
+          }
+        ],
+        teacherAnswerKey: `a) Chiều thuận\nb) Chiều thuận (tỏa nhiệt)\nc) Chiều thuận (giảm số mol khí)\nd) Cân bằng không chuyển dịch`
       }
     ],
     rubrics: [
+      {
+        title: "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM",
+        checklistCriteria: [
+          "Tham gia đầy đủ vào hoạt động nhóm",
+          "Thực hiện đúng nhiệm vụ được phân công",
+          "Chủ động trao đổi và đóng góp ý kiến",
+          "Lắng nghe và tôn trọng ý kiến của thành viên khác",
+          "Sử dụng bằng chứng để giải thích hoặc bảo vệ ý kiến",
+          "Tham gia phản biện và điều chỉnh kết quả khi cần",
+          "Hợp tác để hoàn thành sản phẩm đúng thời gian"
+        ]
+      },
       {
         title: "RUBRIC ĐÁNH GIÁ HOẠT ĐỘNG THẢO LUẬN NHÓM VÀ GIẢI QUYẾT VẤN ĐỀ",
         criteria: [

@@ -106,3 +106,11 @@ export function displayOrDots(
 
   return String(value);
 }
+
+export {
+  normalizeCompetencyCode,
+  removeRepeatedCompetencyCode,
+  cleanCompetencyDescription,
+  cleanRepeatedCode,
+  formatCompetencyLine
+} from "./competencyFormat";

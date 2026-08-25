@@ -11,8 +11,11 @@ import {
   formatAICode,
   formatDigitalCompetencyCode,
   removeLegacyCompetencyCode,
-  cleanBigQuestion
+  cleanBigQuestion,
+  cleanCompetencyDescription,
+  normalizeCompetencyCode
 } from "./competencyHelper";
+import { sanitizeWorksheet, DEFAULT_GROUP_ASSESSMENT_CRITERIA } from "./worksheetHelper";
 import {
   CHEMISTRY_COMPETENCY_FRAMEWORK,
   GENERAL_COMPETENCIES,
@@ -97,16 +100,20 @@ function sanitizeAndRepairPlan(plan: LessonPlan): void {
       if (Array.isArray(plan.objectives.competencies.digitalCompetencies)) {
         plan.objectives.competencies.digitalCompetencies.forEach((dc) => {
           dc.code = formatDigitalCompetencyCode(dc.code);
-          dc.name = removeLegacyCompetencyCode(dc.name);
-          dc.evidence = removeLegacyCompetencyCode(dc.evidence);
+          const rawName = dc.name ? removeLegacyCompetencyCode(dc.name) : "";
+          const rawEvidence = dc.evidence ? removeLegacyCompetencyCode(dc.evidence) : "";
+          dc.name = cleanCompetencyDescription(dc.code, rawName);
+          dc.evidence = cleanCompetencyDescription(dc.code, rawEvidence);
         });
       }
 
       if (Array.isArray(plan.objectives.competencies.aiCompetencies)) {
         plan.objectives.competencies.aiCompetencies.forEach((ai) => {
           ai.code = formatAICode(ai.code);
-          ai.name = removeLegacyCompetencyCode(ai.name);
-          ai.evidence = removeLegacyCompetencyCode(ai.evidence);
+          const rawName = ai.name ? removeLegacyCompetencyCode(ai.name) : "";
+          const rawEvidence = ai.evidence ? removeLegacyCompetencyCode(ai.evidence) : "";
+          ai.name = cleanCompetencyDescription(ai.code, rawName);
+          ai.evidence = cleanCompetencyDescription(ai.code, rawEvidence);
         });
       }
 
@@ -211,6 +218,33 @@ function sanitizeAndRepairPlan(plan: LessonPlan): void {
       }
     });
   });
+
+  // Sanitize appendices: worksheets without solutions, rubrics/checklists
+  if (plan.appendices) {
+    if (Array.isArray(plan.appendices.worksheets)) {
+      plan.appendices.worksheets = plan.appendices.worksheets.map((ws) => sanitizeWorksheet(ws));
+    }
+
+    if (!Array.isArray(plan.appendices.rubrics) || plan.appendices.rubrics.length === 0) {
+      plan.appendices.rubrics = [
+        {
+          title: "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM",
+          checklistCriteria: DEFAULT_GROUP_ASSESSMENT_CRITERIA
+        }
+      ];
+    } else {
+      // Ensure group assessment checklist exists or has criteria
+      const hasGroupChecklist = plan.appendices.rubrics.some(
+        (r) => r.title && r.title.toUpperCase().includes("BẢNG KIỂM")
+      );
+      if (!hasGroupChecklist) {
+        plan.appendices.rubrics.unshift({
+          title: "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM",
+          checklistCriteria: DEFAULT_GROUP_ASSESSMENT_CRITERIA
+        });
+      }
+    }
+  }
 }
 
 const app = express();

@@ -8,6 +8,8 @@ import {
 
 export interface GenerateSettings {
   lessonTitle: string;
+  lessonName?: string;
+  organizationType?: string;
   grade: "10" | "11" | "12" | string;
   textbookSet: string;
   numberOfPeriods: number;
@@ -22,6 +24,16 @@ export interface GenerateSettings {
   model?: string;
   specialRequests?: string;
 }
+
+const ORGANIZATION_TYPE_DESCRIPTIONS: Record<string, string> = {
+  "Dạy học trên lớp": "Giáo viên tổ chức bài học trong lớp học thông thường.",
+  "Hoạt động nhóm": "Học sinh làm việc theo nhóm để thảo luận, giải quyết nhiệm vụ.",
+  "Hoạt động trải nghiệm": "Học sinh tham gia các hoạt động thực tế, tham quan, khảo sát, thực hành.",
+  "Dạy học dự án": "Học sinh thực hiện một dự án trong một khoảng thời gian để tạo ra sản phẩm.",
+  "Hoạt động STEM/STEAM": "Tích hợp kiến thức nhiều môn để giải quyết vấn đề thực tiễn.",
+  "Ngoại khóa/Câu lạc bộ": "Tổ chức ngoài giờ học chính khóa.",
+  "Học trực tuyến hoặc kết hợp (Blended Learning)": "Tổ chức học qua nền tảng số hoặc kết hợp trực tiếp và trực tuyến."
+};
 
 export function buildSystemInstruction(): string {
   return `Bạn là Chuyên gia Sư phạm Hóa học THPT và Cố vấn Đổi mới Giáo dục theo Chương trình Giáo dục Phổ thông 2018 (CT GDPT 2018) và Quyết định 2422/QĐ-BGDĐT của Bộ Giáo dục và Đào tạo Việt Nam.
@@ -78,6 +90,32 @@ CÁC NGUYÊN TẮC BẮT BUỘC KHI SOẠN KHBD:
         - 12A2.1: Học sinh phân tích được một số nguyên tắc đạo đức cơ bản khi sử dụng AI...
         - 12C2.1: Học sinh lựa chọn được công cụ AI phù hợp để hỗ trợ nhiệm vụ học tập...
 
+     * QUY TẮC BẮT BUỘC VỀ MÃ NĂNG LỰC:
+       - Mã năng lực phải được lưu RIÊNG trong field code.
+       - Phần description (hoặc evidence/name) TUYỆT ĐỐI KHÔNG được lặp lại mã.
+       Ví dụ:
+       ĐÚNG:
+       {
+         "code": "1.2NC2a",
+         "description": "Đánh giá được độ tin cậy của dữ liệu và thông tin số."
+       }
+       SAI:
+       {
+         "code": "1.2NC2a",
+         "description": "1.2NC2a Đánh giá được độ tin cậy của dữ liệu và thông tin số."
+       }
+       ĐÚNG:
+       {
+         "code": "12A2.1",
+         "description": "Phân tích được tác động của AI đối với con người."
+       }
+       SAI:
+       {
+         "code": "12A2.1",
+         "description": "12A2.1 Phân tích được tác động của AI đối với con người."
+       }
+       Mã chỉ xuất hiện MỘT LẦN duy nhất ở đầu khi trình bày!
+
      5. Năng lực tiếng Anh:
         - Trình bày các dòng bắt đầu bằng "- " kèm thuật ngữ quốc tế IUPAC.
 
@@ -116,9 +154,47 @@ CÁC NGUYÊN TẮC BẮT BUỘC KHI SOẠN KHBD:
    - Không ghi câu chung chung như "HS ghi bài";
    - Không ghi sai phương trình hoặc danh pháp hóa học (tuân thủ IUPAC).
 
-4. HỌC LIỆU VÀ PHỤ LỤC:
-   - Soạn thảo chi tiết Phiếu học tập (Worksheet) có kèm Hướng dẫn / Đáp án chi tiết (keyAnswer) để giáo viên có thể in và dùng ngay.
-   - Kèm Tiêu chí đánh giá / Bảng kiểm (Rubrics) và Lưu ý an toàn thí nghiệm/hóa chất (nếu bài có thí nghiệm).
+4. HỌC LIỆU VÀ PHỤ LỤC (WORKSSHEETS & ASSESSMENT CHECKLISTS):
+
+   * QUY TẮC PHIẾU HỌC TẬP (BẮT BUỘC):
+     Phiếu học tập là tài liệu giao nhiệm vụ trực tiếp cho học sinh.
+     Phiếu học tập TUYỆT ĐỐI KHÔNG chứa:
+     - Hướng dẫn giải;
+     - Lời giải;
+     - Đáp án;
+     - Đáp án gợi ý;
+     - Cách giải;
+     - Gợi ý dẫn trực tiếp đến kết quả;
+     - Phương án giải mẫu;
+     - Phương trình hóa học hoàn chỉnh nếu đó chính là nội dung HS phải tự viết;
+     - Dữ kiện suy luận trực tiếp làm lộ đáp án.
+
+     Phiếu học tập CHỈ GỒM:
+     - Tên phiếu (ví dụ: PHIẾU HỌC TẬP SỐ 1);
+     - Tên hoạt động nếu cần;
+     - Nhiệm vụ (tasks);
+     - Câu hỏi (questions);
+     - Bảng dữ liệu hoặc thông tin cần thiết;
+     - Khoảng trống để học sinh ghi kết quả;
+     - Phần kết luận của học sinh/nhóm.
+
+     Nếu cần đáp án dành cho giáo viên, PHẢI đặt ở trường dữ liệu riêng (teacherAnswerKey) và KHÔNG render vào Phiếu học tập của học sinh.
+
+   * BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM:
+     Phụ lục cần có Bảng kiểm đánh giá hoạt động và thảo luận nhóm với tiêu đề:
+     "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM"
+     với 7 tiêu chí quan sát và đánh giá được:
+     1. Tham gia đầy đủ vào hoạt động nhóm
+     2. Thực hiện đúng nhiệm vụ được phân công
+     3. Chủ động trao đổi và đóng góp ý kiến
+     4. Lắng nghe và tôn trọng ý kiến của thành viên khác
+     5. Sử dụng bằng chứng để giải thích hoặc bảo vệ ý kiến
+     6. Tham gia phản biện và điều chỉnh kết quả khi cần
+     7. Hợp tác để hoàn thành sản phẩm đúng thời gian
+     (Tiêu chí có thể điều chỉnh linh hoạt theo hoạt động cụ thể của bài học).
+
+   * LƯU Ý AN TOÀN THÍ NGHIỆM / HÓA CHẤT:
+     Nêu rõ các cảnh báo an toàn về hóa chất, nhiệt độ, áp suất hoặc thiết bị thí nghiệm (nếu bài học có thực hành/thí nghiệm).
 
 5. QUY ĐỊNH VỀ CÂU HỎI LỚN (bigQuestion):
    - Mỗi hoạt động phù hợp (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng) phải có một Câu hỏi lớn nhằm kích thích học sinh suy nghĩ, dự đoán, tìm tòi, khám phá, thảo luận và phản biện.
@@ -130,6 +206,57 @@ CÁC NGUYÊN TẮC BẮT BUỘC KHI SOẠN KHBD:
      Câu hỏi lớn - Vấn đề
      Vấn đề lớn/Câu hỏi lớn
      Câu hỏi lớn/Vấn đề lớn
+
+6. QUY ĐỊNH VỀ LOẠI HÌNH TỔ CHỨC:
+   LOẠI HÌNH TỔ CHỨC là dữ liệu bắt buộc phải được sử dụng khi thiết kế bài học.
+   Không chỉ hiển thị tên loại hình ở đầu KHBD mà phải điều chỉnh cách tổ chức hoạt động cho phù hợp.
+
+   1. Nếu chọn 'Dạy học trên lớp':
+   - Thiết kế hoạt động thực hiện chủ yếu trong lớp học.
+   - Có thể kết hợp cá nhân, cặp đôi, nhóm nhỏ, thí nghiệm và công cụ số.
+
+   2. Nếu chọn 'Hoạt động nhóm':
+   - Tăng cường nhiệm vụ hợp tác.
+   - Có phân công vai trò trong nhóm.
+   - Có trao đổi, thảo luận, phản biện.
+   - Có sản phẩm nhóm.
+   - Có đánh giá hoạt động và thảo luận nhóm.
+
+   3. Nếu chọn 'Hoạt động trải nghiệm':
+   - Ưu tiên quan sát, thực hành, khảo sát, trải nghiệm thực tế.
+   - Học sinh thu thập dữ liệu/bằng chứng.
+   - Có nhiệm vụ trước, trong và sau trải nghiệm khi phù hợp.
+
+   4. Nếu chọn 'Dạy học dự án':
+   - Phải có vấn đề hoặc nhiệm vụ dự án.
+   - Có mục tiêu dự án.
+   - Có phân công nhiệm vụ.
+   - Có kế hoạch thực hiện.
+   - Có sản phẩm cuối.
+   - Có báo cáo, phản biện và đánh giá sản phẩm.
+   - Nếu dự án kéo dài ngoài một tiết thì phải thể hiện rõ các giai đoạn.
+
+   5. Nếu chọn 'Hoạt động STEM/STEAM':
+   - Xuất phát từ vấn đề thực tiễn.
+   - Tích hợp kiến thức Hóa học với các lĩnh vực phù hợp.
+   - Có thiết kế, thử nghiệm, đánh giá và cải tiến giải pháp/sản phẩm.
+   - Không gắn STEM/STEAM hình thức nếu hoạt động không thực sự có quá trình thiết kế và giải quyết vấn đề.
+
+   6. Nếu chọn 'Ngoại khóa/Câu lạc bộ':
+   - Thiết kế nhiệm vụ linh hoạt ngoài giờ học chính khóa.
+   - Tăng cường trải nghiệm, trò chơi học tập, thí nghiệm, truyền thông khoa học hoặc sản phẩm sáng tạo.
+   - Không bắt buộc cấu trúc giống hoàn toàn một tiết học trên lớp nếu không phù hợp.
+
+   7. Nếu chọn 'Học trực tuyến hoặc kết hợp (Blended Learning)':
+   - Xác định rõ hoạt động trực tiếp và hoạt động trực tuyến.
+   - Chỉ sử dụng công cụ số khi có mục đích học tập rõ ràng.
+   - Nêu sản phẩm số hoặc minh chứng học tập khi có.
+   - Có phương án tương tác, giao nhiệm vụ, nộp bài và phản hồi.
+
+   * QUY TẮC BẮT BUỘC: KHÔNG TỰ ĐỔI LOẠI HÌNH:
+   - Nếu người dùng chọn 'Hoạt động STEM/STEAM', Gemini không được tự đổi thành 'Dạy học trên lớp'.
+   - Nếu chọn 'Dạy học dự án', Gemini không được xuất 'Hoạt động nhóm'.
+   - Loại hình tổ chức trong header.organizationType phải giữ chính xác theo lựa chọn của người dùng.
 
 DANH MỤC THAM CHIẾU NĂNG LỰC VÀ PHẨM CHẤT:
 ${JSON.stringify({
@@ -171,6 +298,7 @@ export function buildUserPrompt(
 THÔNG TIN BÀI DẠY:
 - Tên Bài học/Chủ đề: ${actualTitle}
 - Loại hình tổ chức: ${organizationType}
+- Mô tả: ${ORGANIZATION_TYPE_DESCRIPTIONS[organizationType] || ""}
 - Môn học: Hóa học
 - Lớp: ${grade} (Khối THPT)
 - Bộ sách giáo khoa: ${textbookSet}

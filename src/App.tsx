@@ -9,6 +9,7 @@ export type AppView = "editor" | "result";
 
 const DEFAULT_SETTINGS: GenerateSettings = {
   lessonTitle: "",
+  organizationType: "Dạy học trên lớp",
   grade: "11",
   textbookSet: "Cánh Diều",
   numberOfPeriods: 2,

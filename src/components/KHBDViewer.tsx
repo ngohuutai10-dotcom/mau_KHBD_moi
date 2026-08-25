@@ -29,8 +29,14 @@ import {
   removeLegacyCompetencyCode,
   removePhasePrefix,
   cleanBigQuestion,
-  displayOrDots
+  displayOrDots,
+  cleanCompetencyDescription
 } from "../utils/competencyHelper";
+import {
+  normalizeWorksheetTasks,
+  sanitizeWorksheetContent,
+  DEFAULT_GROUP_ASSESSMENT_CRITERIA
+} from "../utils/worksheetHelper";
 
 interface TextListProps {
   items?: string[];
@@ -170,7 +176,8 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
       md += `\n**c) Năng lực số (lồng ghép nếu có):**\n`;
       p.objectives.competencies.digitalCompetencies.forEach((dc) => {
         const code = formatDigitalCompetencyCode(dc.code);
-        const desc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+        const rawDesc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+        const desc = cleanCompetencyDescription(code, rawDesc);
         md += `- **${code}:** ${desc}\n`;
       });
     }
@@ -179,7 +186,8 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
       md += `\n**d) Năng lực AI (theo QĐ 2422/QĐ-BGDĐT):**\n`;
       p.objectives.competencies.aiCompetencies.forEach((ai) => {
         const code = formatAICode(ai.code);
-        const desc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+        const rawDesc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+        const desc = cleanCompetencyDescription(code, rawDesc);
         md += `- **${code}:** ${desc}\n`;
       });
     }
@@ -225,9 +233,35 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
 
     if (p.appendices.worksheets?.length) {
       md += `\n### V. PHỤ LỤC\n`;
-      p.appendices.worksheets.forEach((ws) => {
-        md += `\n#### ${ws.title}\n${ws.content}\n`;
-        if (ws.keyAnswer) md += `*Đáp án/Hướng dẫn:* ${ws.keyAnswer}\n`;
+      md += `\n#### 1. Phiếu học tập (Worksheets):\n`;
+      p.appendices.worksheets.forEach((ws, wIdx) => {
+        md += `\n---\n**${ws.title || `PHIẾU HỌC TẬP SỐ ${wIdx + 1}`}**\n`;
+        if (ws.activityName) md += `**Tên hoạt động:** ${ws.activityName}\n`;
+        md += `**Nhóm:** ....................................\n**Lớp:** ....................................\n\n`;
+        const tasks = normalizeWorksheetTasks(ws);
+        tasks.forEach((task, tIdx) => {
+          if (task.title) md += `**${task.title}**\n`;
+          if (task.instruction) md += `${task.instruction}\n`;
+          task.questions.forEach((q, qIdx) => {
+            const formattedQ = /^Câu\s*\d+/i.test(q) || /^\d+[\.:]/i.test(q) ? q : `Câu ${qIdx + 1}. ${q}`;
+            md += `${formattedQ}\n........................................................................\n........................................................................\n`;
+          });
+        });
+        md += `\n**Kết luận của nhóm:**\n........................................................................\n........................................................................\n---\n`;
+      });
+    }
+
+    md += `\n#### 2. Bảng kiểm đánh giá hoạt động và thảo luận nhóm:\n\n`;
+    md += `| STT | Tiêu chí đánh giá | Đạt | Chưa đạt | Ghi chú |\n|---|---|:---:|:---:|---|\n`;
+    const checkCriteria = p.appendices.rubrics?.find(r => r.title?.toUpperCase().includes("BẢNG KIỂM"))?.checklistCriteria || DEFAULT_GROUP_ASSESSMENT_CRITERIA;
+    checkCriteria.forEach((crit, cIdx) => {
+      md += `| ${cIdx + 1} | ${crit} | □ | □ | |\n`;
+    });
+
+    if (p.appendices.safetyNotes?.length) {
+      md += `\n#### 3. Lưu ý an toàn thí nghiệm / Hóa chất:\n`;
+      p.appendices.safetyNotes.forEach((note) => {
+        md += `- ${note}\n`;
       });
     }
 
@@ -481,7 +515,8 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                     <div className="space-y-1 pl-2">
                       {plan.objectives.competencies.digitalCompetencies.map((dc, idx) => {
                         const code = formatDigitalCompetencyCode(dc.code);
-                        const desc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+                        const rawDesc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+                        const cleanDescription = cleanCompetencyDescription(code, rawDesc);
                         return (
                           <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
                             <span className="text-blue-600 shrink-0">-</span>
@@ -489,7 +524,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                               <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 text-[11px]">
                                 {code}
                               </span>
-                              <span>: {desc}</span>
+                              <span>: {cleanDescription}</span>
                             </div>
                           </div>
                         );
@@ -509,7 +544,8 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                     <div className="space-y-1 pl-2">
                       {plan.objectives.competencies.aiCompetencies.map((ai, idx) => {
                         const code = formatAICode(ai.code);
-                        const desc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+                        const rawDesc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+                        const cleanDescription = cleanCompetencyDescription(code, rawDesc);
                         return (
                           <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
                             <span className="text-purple-600 shrink-0">-</span>
@@ -517,7 +553,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                               <span className="font-mono font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 text-[11px]">
                                 {code}
                               </span>
-                              <span>: {desc}</span>
+                              <span>: {cleanDescription}</span>
                             </div>
                           </div>
                         );
@@ -691,61 +727,162 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
         {/* SECTION V: PHỤ LỤC */}
         {(activeTab === "all" || activeTab === "appendices") && plan.appendices && (
           <section className="space-y-6">
-            <h3 className="text-base font-bold text-blue-900 font-serif border-b border-blue-100 pb-1">
+            <h3 className="text-base font-bold text-slate-900 font-serif border-b border-slate-300 pb-1">
               V. PHỤ LỤC & HỌC LIỆU
             </h3>
 
-            {/* Worksheets */}
+            {/* Worksheets (Phiếu học tập) */}
             {plan.appendices.worksheets && plan.appendices.worksheets.length > 0 && (
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-slate-900">1. Phiếu học tập (Worksheets):</h4>
-                {plan.appendices.worksheets.map((ws, wIdx) => (
-                  <div key={ws.id || wIdx} className="border border-slate-300 rounded-xl p-4 bg-slate-50/50 space-y-2">
-                    <div className="text-center font-bold text-sm text-slate-900 uppercase">
-                      {ws.title || `PHIẾU HỌC TẬP SỐ ${wIdx + 1}`}
-                    </div>
-                    <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-800 whitespace-pre-line leading-relaxed font-sans">
-                      {ws.content}
-                    </div>
-                    {ws.keyAnswer && (
-                      <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 leading-relaxed">
-                        <span className="font-bold text-emerald-800">Hướng dẫn giải / Đáp án:</span>
-                        <div className="whitespace-pre-line mt-1">{ws.keyAnswer}</div>
+                {plan.appendices.worksheets.map((ws, wIdx) => {
+                  const tasks = normalizeWorksheetTasks(ws);
+                  return (
+                    <div key={ws.id || wIdx} className="worksheet-box shadow-xs">
+                      <div className="worksheet-title uppercase">
+                        {ws.title || `PHIẾU HỌC TẬP SỐ ${wIdx + 1}`}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {ws.activityName && (
+                        <p className="worksheet-meta font-bold">
+                          Tên hoạt động: {ws.activityName}
+                        </p>
+                      )}
+
+                      <div className="worksheet-meta space-y-1">
+                        <p><strong>Nhóm: </strong>....................................</p>
+                        <p><strong>Lớp: </strong>....................................</p>
+                      </div>
+
+                      {tasks.map((task, tIdx) => (
+                        <div key={tIdx} className="worksheet-task">
+                          {task.title && (
+                            <p className="font-bold text-black mb-1">{task.title}</p>
+                          )}
+                          {task.instruction && (
+                            <p className="text-black text-justify mb-2">{task.instruction}</p>
+                          )}
+                          {task.questions.map((q, qIdx) => {
+                            const formattedQ = /^Câu\s*\d+/i.test(q) || /^\d+[\.:]/i.test(q)
+                              ? q
+                              : `Câu ${qIdx + 1}. ${q}`;
+                            return (
+                              <div key={qIdx} className="worksheet-question">
+                                <p className="text-black">{formattedQ}</p>
+                                <div className="answer-space">
+                                  ........................................................................................................................
+                                  <br />
+                                  ........................................................................................................................
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+
+                      <div className="worksheet-task mt-2">
+                        <p className="font-bold text-black mb-1">Kết luận của nhóm:</p>
+                        <div className="answer-space">
+                          ........................................................................................................................
+                          <br />
+                          ........................................................................................................................
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {/* Rubrics */}
-            {plan.appendices.rubrics && plan.appendices.rubrics.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-bold text-slate-900">2. Bảng kiểm đánh giá (Rubrics):</h4>
-                {plan.appendices.rubrics.map((rubric, rIdx) => (
-                  <div key={rIdx} className="border border-slate-200 rounded-xl p-3.5 bg-white shadow-2xs space-y-2">
-                    <p className="font-bold text-xs text-slate-900">{rubric.title}</p>
-                    <div className="space-y-1.5">
-                      {rubric.criteria.map((crit, cIdx) => (
-                        <div key={cIdx} className="text-xs text-slate-700 p-2 bg-slate-50 rounded border border-slate-100">
-                          <span className="font-semibold text-slate-900">• Tiêu chí: {crit.name}:</span>
-                          <div className="text-[11px] text-slate-600 mt-0.5">{crit.levels.join(" | ")}</div>
-                        </div>
-                      ))}
-                    </div>
+            {/* Bảng kiểm đánh giá hoạt động và thảo luận nhóm */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold text-slate-900">2. Bảng kiểm đánh giá hoạt động và thảo luận nhóm:</h4>
+              
+              {(() => {
+                const groupRubric = plan.appendices.rubrics?.find(
+                  (r) => r.title?.toUpperCase().includes("BẢNG KIỂM") || r.checklistCriteria?.length
+                );
+                const criteria = groupRubric?.checklistCriteria?.length
+                  ? groupRubric.checklistCriteria
+                  : DEFAULT_GROUP_ASSESSMENT_CRITERIA;
+
+                return (
+                  <div className="overflow-x-auto">
+                    <p className="text-center font-bold text-sm text-black mb-2 uppercase font-serif">
+                      {groupRubric?.title || "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM"}
+                    </p>
+                    <table className="assessment-checklist-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: "7%" }}>STT</th>
+                          <th style={{ width: "55%" }}>Tiêu chí đánh giá</th>
+                          <th style={{ width: "10%" }}>Đạt</th>
+                          <th style={{ width: "14%" }}>Chưa đạt</th>
+                          <th style={{ width: "14%" }}>Ghi chú</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {criteria.map((criterion, cIdx) => (
+                          <tr key={cIdx}>
+                            <td className="text-center">{cIdx + 1}</td>
+                            <td className="text-justify">{removeLegacyCompetencyCode(criterion)}</td>
+                            <td className="text-center font-bold text-base">□</td>
+                            <td className="text-center font-bold text-base">□</td>
+                            <td></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })()}
+
+              {/* Other Rubrics with multi-level criteria */}
+              {plan.appendices.rubrics && plan.appendices.rubrics.filter(r => !r.title?.toUpperCase().includes("BẢNG KIỂM") && Array.isArray(r.criteria) && r.criteria.length > 0).map((rubric, rIdx) => (
+                <div key={rIdx} className="overflow-x-auto mt-4">
+                  <p className="text-center font-bold text-sm text-black mb-2 uppercase font-serif">
+                    {rubric.title}
+                  </p>
+                  <table className="khbd-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "7%" }}>STT</th>
+                        <th style={{ width: "28%" }}>Tiêu chí</th>
+                        <th style={{ width: "65%" }}>Mô tả các mức độ đạt được</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rubric.criteria?.map((crit, cIdx) => {
+                        const cName = typeof crit === "string" ? crit : crit.name;
+                        const cLevels = typeof crit === "string" || !Array.isArray(crit.levels) ? [] : crit.levels;
+                        return (
+                          <tr key={cIdx}>
+                            <td className="text-center">{cIdx + 1}</td>
+                            <td className="font-semibold text-justify">{removeLegacyCompetencyCode(cName)}</td>
+                            <td>
+                              <ul className="space-y-1 text-justify">
+                                {cLevels.map((lvl, lIdx) => (
+                                  <li key={lIdx}>- {removeLegacyCompetencyCode(lvl)}</li>
+                                ))}
+                              </ul>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
 
             {/* Safety Notes */}
             {plan.appendices.safetyNotes && plan.appendices.safetyNotes.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-bold text-slate-900">3. Lưu ý an toàn thí nghiệm / Hóa chất:</h4>
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 space-y-1">
+                <div className="p-3 bg-white border border-slate-900 rounded-none text-xs text-black space-y-1 font-serif">
                   {plan.appendices.safetyNotes.map((note, nIdx) => (
                     <div key={nIdx} className="flex items-start gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <span className="font-bold">-</span>
                       <span>{note}</span>
                     </div>
                   ))}

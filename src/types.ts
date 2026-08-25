@@ -1,7 +1,16 @@
+export type OrganizationType =
+  | "Dạy học trên lớp"
+  | "Hoạt động nhóm"
+  | "Hoạt động trải nghiệm"
+  | "Dạy học dự án"
+  | "Hoạt động STEM/STEAM"
+  | "Ngoại khóa/Câu lạc bộ"
+  | "Học trực tuyến hoặc kết hợp (Blended Learning)";
+
 export interface KHBDHeader {
   lessonName?: string;
   lessonTitle: string;
-  organizationType?: string;
+  organizationType?: OrganizationType | string;
   schoolName?: string;
   department?: string;
   teacherName?: string;
@@ -96,10 +105,19 @@ export interface LearningActivity {
   };
 }
 
+export interface WorksheetTask {
+  title?: string;
+  instruction?: string;
+  questions: string[];
+}
+
 export interface Worksheet {
-  id: string;
+  id?: string;
   title: string;
-  content: string;
+  activityName?: string;
+  tasks?: WorksheetTask[];
+  content?: string;
+  teacherAnswerKey?: string;
   keyAnswer?: string;
 }
 
@@ -110,7 +128,8 @@ export interface RubricCriterion {
 
 export interface Rubric {
   title: string;
-  criteria: RubricCriterion[];
+  criteria?: RubricCriterion[];
+  checklistCriteria?: string[];
 }
 
 export interface KHBDAppendices {
@@ -130,7 +149,7 @@ export interface LessonPlan {
 export interface GenerateSettings {
   lessonTitle: string;
   lessonName?: string;
-  organizationType?: string;
+  organizationType?: OrganizationType;
   grade: "10" | "11" | "12" | string;
   textbookSet: string;
   numberOfPeriods: number;

@@ -98,10 +98,19 @@ export interface LearningActivity {
   };
 }
 
+export interface WorksheetTask {
+  title?: string;
+  instruction?: string;
+  questions: string[];
+}
+
 export interface Worksheet {
-  id: string;
+  id?: string;
   title: string;
-  content: string;
+  activityName?: string;
+  tasks?: WorksheetTask[];
+  content?: string;
+  teacherAnswerKey?: string;
   keyAnswer?: string;
 }
 
@@ -112,7 +121,8 @@ export interface RubricCriterion {
 
 export interface Rubric {
   title: string;
-  criteria: RubricCriterion[];
+  criteria?: RubricCriterion[];
+  checklistCriteria?: string[];
 }
 
 export interface KHBDAppendices {
@@ -345,10 +355,26 @@ export const lessonPlanGeminiSchema: Schema = {
             properties: {
               id: { type: Type.STRING },
               title: { type: Type.STRING },
+              activityName: { type: Type.STRING },
+              tasks: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    instruction: { type: Type.STRING },
+                    questions: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING }
+                    }
+                  },
+                  required: ["questions"]
+                }
+              },
               content: { type: Type.STRING },
-              keyAnswer: { type: Type.STRING }
+              teacherAnswerKey: { type: Type.STRING }
             },
-            required: ["id", "title", "content"]
+            required: ["title"]
           }
         },
         rubrics: {
@@ -370,9 +396,13 @@ export const lessonPlanGeminiSchema: Schema = {
                   },
                   required: ["name", "levels"]
                 }
+              },
+              checklistCriteria: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
               }
             },
-            required: ["title", "criteria"]
+            required: ["title"]
           }
         },
         safetyNotes: {

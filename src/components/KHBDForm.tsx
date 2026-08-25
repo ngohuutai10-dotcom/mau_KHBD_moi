@@ -17,7 +17,8 @@ import {
   User,
   Sliders
 } from "lucide-react";
-import type { GenerateSettings, LessonPlan } from "../types";
+import type { GenerateSettings, LessonPlan, OrganizationType } from "../types";
+import { ORGANIZATION_TYPES } from "../constants/organizationTypes";
 import { SAMPLE_LESSON_PLAN_EQUILIBRIUM } from "./SampleLessonPlans";
 
 interface KHBDFormProps {
@@ -333,15 +334,30 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
               <label className="block text-xs font-bold text-slate-700">Loại hình tổ chức</label>
               <select
                 value={settings.organizationType || "Dạy học trên lớp"}
-                onChange={(e) => setSettings({ ...settings, organizationType: e.target.value })}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    organizationType: e.target.value as OrganizationType
+                  })
+                }
                 className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
-                <option value="Dạy học trên lớp">Dạy học trên lớp</option>
-                <option value="Dạy học trực tuyến">Dạy học trực tuyến</option>
-                <option value="Dạy học kết hợp">Dạy học kết hợp</option>
-                <option value="Hoạt động trải nghiệm">Hoạt động trải nghiệm</option>
-                <option value="Khác">Khác</option>
+                {ORGANIZATION_TYPES.map((option, index) => (
+                  <option key={option.value} value={option.value}>
+                    {index + 1}. {option.label}
+                  </option>
+                ))}
               </select>
+              {(() => {
+                const currentOrg = ORGANIZATION_TYPES.find(
+                  (item) => item.value === (settings.organizationType || "Dạy học trên lớp")
+                );
+                return currentOrg ? (
+                  <p className="organization-description">
+                    {currentOrg.description}
+                  </p>
+                ) : null;
+              })()}
             </div>
 
             {/* Grade */}

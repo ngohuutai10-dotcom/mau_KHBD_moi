@@ -16,14 +16,20 @@ import {
   ShadingType
 } from "docx";
 import saveAs from "file-saver";
-import type { LessonPlan, LearningActivity } from "../types";
+import type { LessonPlan, LearningActivity, Worksheet, Rubric } from "../types";
 import {
   formatAICode,
   formatDigitalCompetencyCode,
   removeLegacyCompetencyCode,
   removePhasePrefix,
-  cleanBigQuestion
+  cleanBigQuestion,
+  cleanCompetencyDescription
 } from "./competencyHelper";
+import {
+  normalizeWorksheetTasks,
+  sanitizeWorksheetContent,
+  DEFAULT_GROUP_ASSESSMENT_CRITERIA
+} from "./worksheetHelper";
 
 export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   const font = "Times New Roman";
@@ -45,31 +51,302 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     insideVertical: TABLE_BORDER
   };
 
-  const createHeaderCell = (text: string, width: number): TableCell => {
+  const createBorderedCell = (
+    children: Paragraph[],
+    width?: number,
+    align: AlignmentType = AlignmentType.LEFT
+  ): TableCell => {
     return new TableCell({
-      width: {
-        size: width,
-        type: WidthType.PERCENTAGE
-      },
-      shading: {
-        type: ShadingType.CLEAR,
-        fill: "FFFFFF",
-        color: "auto"
-      },
+      width: width
+        ? {
+            size: width,
+            type: WidthType.PERCENTAGE
+          }
+        : undefined,
       borders: {
         top: TABLE_BORDER,
         bottom: TABLE_BORDER,
         left: TABLE_BORDER,
         right: TABLE_BORDER
       },
+      shading: {
+        type: ShadingType.CLEAR,
+        fill: "FFFFFF",
+        color: "auto"
+      },
+      children
+    });
+  };
+
+  const createWorksheetTable = (worksheet: Worksheet, wsIdx: number): Table => {
+    const rows: TableRow[] = [];
+
+    // Row 1: Header / Title (căn giữa, in đậm)
+    rows.push(
+      new TableRow({
+        children: [
+          createBorderedCell([
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { line: defaultLineSpacing, before: 60, after: 60 },
+              children: [
+                new TextRun({
+                  text: worksheet.title || `PHIẾU HỌC TẬP SỐ ${wsIdx + 1}`,
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
+          ])
+        ]
+      })
+    );
+
+    // Row 2: Tên hoạt động (nếu có)
+    if (worksheet.activityName) {
+      rows.push(
+        new TableRow({
+          children: [
+            createBorderedCell([
+              new Paragraph({
+                alignment: AlignmentType.LEFT,
+                spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                children: [
+                  new TextRun({
+                    text: `Tên hoạt động: ${worksheet.activityName}`,
+                    font,
+                    size: defaultSize,
+                    bold: true,
+                    color: "000000"
+                  })
+                ]
+              })
+            ])
+          ]
+        })
+      );
+    }
+
+    // Row 3: Nhóm & Lớp
+    rows.push(
+      new TableRow({
+        children: [
+          createBorderedCell([
+            new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { line: defaultLineSpacing, before: 40, after: 20 },
+              children: [
+                new TextRun({
+                  text: "Nhóm: ....................................",
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { line: defaultLineSpacing, before: 20, after: 40 },
+              children: [
+                new TextRun({
+                  text: "Lớp: ....................................",
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
+          ])
+        ]
+      })
+    );
+
+    // Rows for Tasks:
+    const tasks = normalizeWorksheetTasks(worksheet);
+    if (tasks.length > 0) {
+      tasks.forEach((task, tIdx) => {
+        const paragraphs: Paragraph[] = [];
+
+        if (task.title) {
+          paragraphs.push(
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 40, after: 20 },
+              children: [
+                new TextRun({
+                  text: task.title,
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
+          );
+        } else if (tasks.length > 1) {
+          paragraphs.push(
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 40, after: 20 },
+              children: [
+                new TextRun({
+                  text: `Nhiệm vụ ${tIdx + 1}:`,
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
+          );
+        }
+
+        if (task.instruction) {
+          paragraphs.push(
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 20, after: 20 },
+              children: [
+                new TextRun({
+                  text: task.instruction,
+                  font,
+                  size: defaultSize,
+                  color: "000000"
+                })
+              ]
+            })
+          );
+        }
+
+        if (Array.isArray(task.questions) && task.questions.length > 0) {
+          task.questions.forEach((question, qIdx) => {
+            const qText = question.trim();
+            const formattedQ = /^Câu\s*\d+/i.test(qText) || /^\d+[\.:]/i.test(qText)
+              ? qText
+              : `Câu ${qIdx + 1}. ${qText}`;
+
+            paragraphs.push(
+              new Paragraph({
+                spacing: { line: defaultLineSpacing, before: 30, after: 20 },
+                children: [
+                  new TextRun({
+                    text: formattedQ,
+                    font,
+                    size: defaultSize,
+                    color: "000000"
+                  })
+                ]
+              })
+            );
+
+            // Answer space dotted lines
+            paragraphs.push(
+              new Paragraph({
+                spacing: { line: defaultLineSpacing, before: 10, after: 10 },
+                children: [
+                  new TextRun({
+                    text: "........................................................................................................................",
+                    font,
+                    size: defaultSize,
+                    color: "000000"
+                  })
+                ]
+              })
+            );
+            paragraphs.push(
+              new Paragraph({
+                spacing: { line: defaultLineSpacing, before: 10, after: 20 },
+                children: [
+                  new TextRun({
+                    text: "........................................................................................................................",
+                    font,
+                    size: defaultSize,
+                    color: "000000"
+                  })
+                ]
+              })
+            );
+          });
+        }
+
+        rows.push(
+          new TableRow({
+            children: [createBorderedCell(paragraphs)]
+          })
+        );
+      });
+    }
+
+    // Row for Kết luận của nhóm
+    rows.push(
+      new TableRow({
+        children: [
+          createBorderedCell([
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 40, after: 20 },
+              children: [
+                new TextRun({
+                  text: "Kết luận của nhóm:",
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            }),
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 10, after: 10 },
+              children: [
+                new TextRun({
+                  text: "........................................................................................................................",
+                  font,
+                  size: defaultSize,
+                  color: "000000"
+                })
+              ]
+            }),
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 10, after: 40 },
+              children: [
+                new TextRun({
+                  text: "........................................................................................................................",
+                  font,
+                  size: defaultSize,
+                  color: "000000"
+                })
+              ]
+            })
+          ])
+        ]
+      })
+    );
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: TABLE_BORDERS,
+      rows
+    });
+  };
+
+  const createChecklistHeaderCell = (text: string, width: number): TableCell => {
+    return new TableCell({
+      width: { size: width, type: WidthType.PERCENTAGE },
+      borders: {
+        top: TABLE_BORDER,
+        bottom: TABLE_BORDER,
+        left: TABLE_BORDER,
+        right: TABLE_BORDER
+      },
+      shading: {
+        type: ShadingType.CLEAR,
+        fill: "FFFFFF",
+        color: "auto"
+      },
       children: [
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: {
-            line: defaultLineSpacing,
-            before: 60,
-            after: 60
-          },
+          spacing: { line: defaultLineSpacing, before: 60, after: 60 },
           children: [
             new TextRun({
               text,
@@ -81,6 +358,202 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
           ]
         })
       ]
+    });
+  };
+
+  const createGroupAssessmentChecklist = (criteria?: string[]): Table => {
+    const actualCriteria = criteria && criteria.length > 0 ? criteria : DEFAULT_GROUP_ASSESSMENT_CRITERIA;
+
+    const headerRow = new TableRow({
+      children: [
+        createChecklistHeaderCell("STT", 7),
+        createChecklistHeaderCell("Tiêu chí đánh giá", 55),
+        createChecklistHeaderCell("Đạt", 10),
+        createChecklistHeaderCell("Chưa đạt", 14),
+        createChecklistHeaderCell("Ghi chú", 14)
+      ]
+    });
+
+    const rows = actualCriteria.map(
+      (criterion, index) =>
+        new TableRow({
+          children: [
+            createBorderedCell(
+              [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                  children: [
+                    new TextRun({
+                      text: String(index + 1),
+                      font,
+                      size: defaultSize,
+                      color: "000000"
+                    })
+                  ]
+                })
+              ],
+              7
+            ),
+            createBorderedCell(
+              [
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                  children: [
+                    new TextRun({
+                      text: removeLegacyCompetencyCode(criterion),
+                      font,
+                      size: defaultSize,
+                      color: "000000"
+                    })
+                  ]
+                })
+              ],
+              55
+            ),
+            createBorderedCell(
+              [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                  children: [
+                    new TextRun({
+                      text: "□",
+                      font,
+                      size: defaultSize,
+                      color: "000000"
+                    })
+                  ]
+                })
+              ],
+              10
+            ),
+            createBorderedCell(
+              [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                  children: [
+                    new TextRun({
+                      text: "□",
+                      font,
+                      size: defaultSize,
+                      color: "000000"
+                    })
+                  ]
+                })
+              ],
+              14
+            ),
+            createBorderedCell(
+              [
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                  children: [
+                    new TextRun({
+                      text: "",
+                      font,
+                      size: defaultSize,
+                      color: "000000"
+                    })
+                  ]
+                })
+              ],
+              14
+            )
+          ]
+        })
+    );
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: TABLE_BORDERS,
+      rows: [headerRow, ...rows]
+    });
+  };
+
+  const createRubricTable = (rubric: Rubric): Table => {
+    const headerRow = new TableRow({
+      children: [
+        createChecklistHeaderCell("STT", 7),
+        createChecklistHeaderCell("Tiêu chí", 30),
+        createChecklistHeaderCell("Mô tả các mức độ đạt được", 63)
+      ]
+    });
+
+    const criteriaList = Array.isArray(rubric.criteria) ? rubric.criteria : [];
+    const rows = criteriaList.map((crit, idx) => {
+      const critName = typeof crit === "string" ? crit : crit.name;
+      const levelsText = typeof crit === "string"
+        ? ""
+        : Array.isArray(crit.levels)
+        ? crit.levels.map((l) => removeLegacyCompetencyCode(l)).join("\n• ")
+        : "";
+
+      const levelParagraphs: Paragraph[] = (typeof crit === "string" || !Array.isArray(crit.levels))
+        ? [new Paragraph({ spacing: { line: defaultLineSpacing }, children: [new TextRun({ text: "", font, size: defaultSize })] })]
+        : crit.levels.map((lvl) =>
+            new Paragraph({
+              spacing: { line: defaultLineSpacing, before: 20, after: 20 },
+              children: [
+                new TextRun({
+                  text: `- ${removeLegacyCompetencyCode(lvl)}`,
+                  font,
+                  size: defaultSize,
+                  color: "000000"
+                })
+              ]
+            })
+          );
+
+      return new TableRow({
+        children: [
+          createBorderedCell(
+            [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                children: [
+                  new TextRun({
+                    text: String(idx + 1),
+                    font,
+                    size: defaultSize,
+                    color: "000000"
+                  })
+                ]
+              })
+            ],
+            7
+          ),
+          createBorderedCell(
+            [
+              new Paragraph({
+                alignment: AlignmentType.LEFT,
+                spacing: { line: defaultLineSpacing, before: 40, after: 40 },
+                children: [
+                  new TextRun({
+                    text: removeLegacyCompetencyCode(critName),
+                    font,
+                    size: defaultSize,
+                    bold: true,
+                    color: "000000"
+                  })
+                ]
+              })
+            ],
+            30
+          ),
+          createBorderedCell(levelParagraphs, 63)
+        ]
+      });
+    });
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: TABLE_BORDERS,
+      rows: [headerRow, ...rows]
     });
   };
 
@@ -291,21 +764,22 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
 
   // Helper for digital competency paragraph
   const createDigitalCompetencyParagraph = (code: string, description: string): Paragraph => {
-    const formattedCode = formatDigitalCompetencyCode(code);
-    const cleanDesc = removeLegacyCompetencyCode(description);
+    const displayCode = formatDigitalCompetencyCode(code);
+    const rawDesc = removeLegacyCompetencyCode(description);
+    const cleanDescription = cleanCompetencyDescription(displayCode, rawDesc);
     return new Paragraph({
       alignment: AlignmentType.LEFT,
-      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      spacing: { line: defaultLineSpacing, before: 0, after: 0 },
       children: [
         new TextRun({
-          text: `- ${formattedCode}: `,
-          bold: true,
+          text: `- ${displayCode}: `,
           font,
           size: defaultSize,
+          bold: true,
           color: "000000"
         }),
         new TextRun({
-          text: cleanDesc,
+          text: cleanDescription,
           font,
           size: defaultSize,
           color: "000000"
@@ -316,21 +790,22 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
 
   // Helper for AI competency paragraph
   const createAICompetencyParagraph = (code: string, description: string): Paragraph => {
-    const formattedCode = formatAICode(code);
-    const cleanDesc = removeLegacyCompetencyCode(description);
+    const displayCode = formatAICode(code);
+    const rawDesc = removeLegacyCompetencyCode(description);
+    const cleanDescription = cleanCompetencyDescription(displayCode, rawDesc);
     return new Paragraph({
       alignment: AlignmentType.LEFT,
-      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      spacing: { line: defaultLineSpacing, before: 0, after: 0 },
       children: [
         new TextRun({
-          text: `- ${formattedCode}: `,
-          bold: true,
+          text: `- ${displayCode}: `,
           font,
           size: defaultSize,
+          bold: true,
           color: "000000"
         }),
         new TextRun({
-          text: cleanDesc,
+          text: cleanDescription,
           font,
           size: defaultSize,
           color: "000000"
@@ -743,54 +1218,101 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   if (plan.appendices && (plan.appendices.worksheets?.length || plan.appendices.rubrics?.length || plan.appendices.safetyNotes?.length)) {
     docChildren.push(sectionHeading("V. PHỤ LỤC"));
 
-    // Worksheets
+    // Worksheets (Phiếu học tập)
     if (plan.appendices.worksheets && plan.appendices.worksheets.length > 0) {
       docChildren.push(subSectionHeading("1. Phiếu học tập (Worksheets):"));
       plan.appendices.worksheets.forEach((ws, idx) => {
+        // Spacing before worksheet
         docChildren.push(
           new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 100, after: 40, line: defaultLineSpacing },
-            children: [
-              new TextRun({
-                text: `${ws.title || `PHIẾU HỌC TẬP SỐ ${idx + 1}`}`,
-                font,
-                size: defaultSize, // 12pt bold
-                bold: true
-              })
-            ]
+            spacing: { before: 80, after: 40, line: defaultLineSpacing },
+            children: []
           })
         );
-        docChildren.push(p(removeLegacyCompetencyCode(ws.content)));
-        if (ws.keyAnswer) {
+        docChildren.push(createWorksheetTable(ws, idx));
+      });
+    }
+
+    // Rubrics & Checklists
+    docChildren.push(
+      new Paragraph({
+        spacing: { before: 120, after: 40, line: defaultLineSpacing },
+        children: []
+      })
+    );
+    docChildren.push(subSectionHeading("2. Bảng kiểm đánh giá hoạt động và thảo luận nhóm:"));
+
+    let hasRenderedChecklist = false;
+
+    if (plan.appendices.rubrics && plan.appendices.rubrics.length > 0) {
+      plan.appendices.rubrics.forEach((rubric) => {
+        const titleUpper = (rubric.title || "").toUpperCase();
+        if (titleUpper.includes("BẢNG KIỂM") || rubric.checklistCriteria?.length) {
           docChildren.push(
-            pMixed([
-              { text: "Hướng dẫn giải / Đáp án: ", bold: true, italic: true },
-              { text: removeLegacyCompetencyCode(ws.keyAnswer) }
-            ])
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 40, line: defaultLineSpacing },
+              children: [
+                new TextRun({
+                  text: rubric.title || "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM",
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
           );
+          docChildren.push(createGroupAssessmentChecklist(rubric.checklistCriteria));
+          hasRenderedChecklist = true;
+        } else {
+          docChildren.push(
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 40, line: defaultLineSpacing },
+              children: [
+                new TextRun({
+                  text: rubric.title || "RUBRIC ĐÁNH GIÁ",
+                  font,
+                  size: defaultSize,
+                  bold: true,
+                  color: "000000"
+                })
+              ]
+            })
+          );
+          docChildren.push(createRubricTable(rubric));
         }
       });
     }
 
-    // Rubrics
-    if (plan.appendices.rubrics && plan.appendices.rubrics.length > 0) {
-      docChildren.push(subSectionHeading("2. Bảng kiểm đánh giá (Rubrics):"));
-      plan.appendices.rubrics.forEach((rubric) => {
-        docChildren.push(p(removeLegacyCompetencyCode(rubric.title), { bold: true }));
-        rubric.criteria.forEach((crit) => {
-          docChildren.push(
-            pMixed([
-              { text: `- Tiêu chí: ${removeLegacyCompetencyCode(crit.name)}: `, bold: true },
-              { text: removeLegacyCompetencyCode(crit.levels.join(" | ")) }
-            ])
-          );
-        });
-      });
+    if (!hasRenderedChecklist) {
+      docChildren.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 80, after: 40, line: defaultLineSpacing },
+          children: [
+            new TextRun({
+              text: "BẢNG KIỂM ĐÁNH GIÁ HOẠT ĐỘNG VÀ THẢO LUẬN NHÓM",
+              font,
+              size: defaultSize,
+              bold: true,
+              color: "000000"
+            })
+          ]
+        })
+      );
+      docChildren.push(createGroupAssessmentChecklist(DEFAULT_GROUP_ASSESSMENT_CRITERIA));
     }
 
     // Safety Notes
     if (plan.appendices.safetyNotes && plan.appendices.safetyNotes.length > 0) {
+      docChildren.push(
+        new Paragraph({
+          spacing: { before: 120, after: 40, line: defaultLineSpacing },
+          children: []
+        })
+      );
       docChildren.push(subSectionHeading("3. Lưu ý an toàn thí nghiệm / Hóa chất:"));
       plan.appendices.safetyNotes.forEach((note) => {
         docChildren.push(createDashParagraph(note));
