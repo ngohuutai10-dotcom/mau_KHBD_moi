@@ -1,0 +1,6 @@
+{
+  "name": "Soạn KHBD Hóa học THPT",
+  "description": "Ứng dụng soạn Kế hoạch bài dạy Hóa học THPT chuẩn chương trình GDPT 2018 với AI Gemini, hỗ trợ Năng lực số, Năng lực AI theo QĐ 2422/QĐ-BGDĐT và xuất file Word .docx",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
