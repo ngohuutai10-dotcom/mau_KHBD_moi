@@ -8,6 +8,8 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
     subject: "Hóa học",
     grade: "11",
     lessonTitle: "Khái niệm về cân bằng hóa học",
+    lessonName: "Khái niệm về cân bằng hóa học",
+    organizationType: "Dạy học trên lớp",
     textbookSet: "Cánh Diều (Kết hợp Kết nối tri thức & Chân trời sáng tạo)",
     numberOfPeriods: 2,
     periodDuration: 45,
@@ -139,9 +141,8 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
       "Hệ thống Phiếu học tập số 1, số 2, số 3 in sẵn cho các nhóm học sinh"
     ],
     students: [
-      "Sách giáo khoa Hóa học 11, vở ghi chép, bút màu",
-      "Thiết bị thông minh (Smartphone/Tablet) để truy cập ứng dụng mô phỏng số và quét mã QR tra cứu",
-      "Bài tập chuẩn bị trước ở nhà theo hướng dẫn tuần trước"
+      "Sách giáo khoa Hóa học 11, vở ghi, bút viết",
+      "Thiết bị điện tử (điện thoại/máy tính bảng) để truy cập mô phỏng thí nghiệm trực tuyến"
     ]
   },
   learningActivities: [
@@ -149,217 +150,319 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
       id: "act_1",
       activityNumber: 1,
       period: 1,
-      title: "Khởi động: Tạo tình huống có vấn đề về phản ứng thuận nghịch",
+      title: "Khởi động: Hiện tượng hòa tan và giải phóng khí CO2 trong đồ uống có ga",
       type: "KHOI_DONG",
-      typeLabel: "Hoạt động 1: Khởi động - Bí ẩn chai nước ngọt có ga (10 phút)",
-      durationMinutes: 10,
-      bigQuestion: "Tại sao khi mở nắp chai nước ngọt có bọt khí sủi lên, nhưng khi đóng chặt nắp lại thì hiện tượng sủi bọt dừng lại?",
-      objective: "Kích thích trí tò mò, tạo mâu thuẫn nhận thức về phản ứng diễn ra theo hai chiều trái ngược nhau trong cùng một điều kiện.",
-      content: "Quan sát hiện tượng thực tế mở nắp chai nước ngọt có ga và viết phương trình hòa tan của khí CO2 trong nước.",
-      product: "Học sinh nêu được nhận xét: CO2 hòa tan trong nước tạo H2CO3, đồng thời H2CO3 phân hủy ngược lại thành CO2 và H2O.",
-      organization: {
-        teacherActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Giáo viên mở một chai nước khoáng có ga trước lớp, yêu cầu học sinh quan sát bọt khí và trả lời câu hỏi dẫn dắt: 'Điều gì xảy ra khi đóng nắp và khi mở nắp chai nước có ga?' Giao nhiệm vụ cho các cặp đôi suy nghĩ trong 2 phút."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Quan sát, lắng nghe câu hỏi của học sinh, gợi ý học sinh liên hệ đến quá trình hòa tan và phân hủy của carbonic acid (H2CO3)."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Mời đại diện 2 cặp học sinh phát biểu. Yêu cầu các học sinh khác nhận xét, bổ sung ý kiến về chiều phản ứng."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Giáo viên chốt lại: Có những phản ứng không diễn ra hoàn toàn mà xảy ra đồng thời theo 2 chiều ngược nhau. Đó là phản ứng thuận nghịch dẫn đến trạng thái cân bằng hóa học - chủ đề chính của bài học hôm nay."
-          }
-        ],
-        studentActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Lắng nghe giáo viên giao nhiệm vụ, nhận diện câu hỏi lớn về hiện tượng sủi bọt khí trong chai nước có ga."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Làm việc theo cặp, thảo luận để giải thích hiện tượng dựa trên kiến thức phân tử CO2 và H2CO3."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Đại diện học sinh trả lời câu hỏi, ghi phương trình biểu diễn hai chiều: CO2 (aq) + H2O (l) ⇌ H2CO3 (aq)."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Lắng nghe giáo viên chuẩn hóa kiến thức, ghi tiêu đề bài học vào vở ghi chép."
-          }
-        ]
-      },
+      typeLabel: "Hoạt động 1: Khởi động (7 phút)",
+      durationMinutes: 7,
+      bigQuestion: "Tại sao khi mở nắp chai nước giải khát có ga ta thấy bọt khí sủi lên mạnh, nhưng đóng nắp lại sau một thời gian thì bọt khí ngưng thoát ra?",
+      objective: "Kích thích tư duy về các quá trình xảy ra theo hai chiều ngược nhau trong đời sống.",
+      content: "Quan sát hiện tượng thực tế và dự đoán bản chất hiện tượng biến đổi thuận nghịch.",
+      product: "Câu trả lời của học sinh về hiện tượng sủi bọt khí CO2 và dự đoán về tính hai chiều của quá trình.",
+      organization: [
+        {
+          phase: "Chuyển giao nhiệm vụ học tập",
+          teacher: [
+            "Chiếu video thí nghiệm mở nắp chai nước ngọt có ga và đóng nắp lại.",
+            "Đặt câu hỏi lớn: 'Tại sao khi mở nắp khí CO2 thoát ra sủi bọt, còn khi đóng kín nắp sau một thời gian thì hiện tượng sủi bọt dừng lại? Phải chăng phản ứng đã dừng hẳn hay đang diễn ra theo cả hai chiều?'"
+          ],
+          student: [
+            "Lắng nghe, quan sát video hiện tượng sủi bọt khí CO2 trong chai nước có ga.",
+            "Ghi nhận câu hỏi định hướng của giáo viên vào sổ tay học tập cá nhân."
+          ],
+          boardContent: [
+            "Chương 1: CÂN BẰNG HÓA HỌC",
+            "Bài 1: Khái niệm về cân bằng hóa học",
+            "- Tình huống mở đầu: Quá trình hòa tan và thoát khí CO2 trong nước giải khát có ga."
+          ]
+        },
+        {
+          phase: "Thực hiện nhiệm vụ",
+          teacher: [
+            "Theo dõi học sinh suy nghĩ cá nhân trong 2 phút.",
+            "Gợi ý học sinh liên hệ giữa trạng thái mở nắp (hệ hở) và đóng nắp (hệ kín)."
+          ],
+          student: [
+            "Thảo luận theo cặp đôi (2 phút) để phân tích hiện tượng.",
+            "Dự đoán: Quá trình CO2(aq) ⇌ CO2(g) diễn ra đồng thời theo hai chiều trong chai đóng kín."
+          ],
+          boardContent: [
+            "- Quá trình thuận nghịch: Khí CO2 tan vào nước ⇌ Khí CO2 thoát ra khỏi dung dịch."
+          ]
+        },
+        {
+          phase: "Báo cáo kết quả và thảo luận",
+          teacher: [
+            "Mời đại diện 2 học sinh phát biểu ý kiến.",
+            "Ghi nhận các ý kiến trái chiều để dẫn dắt vào bài mới."
+          ],
+          student: [
+            "Đại diện cặp đôi phát biểu ý kiến trước lớp.",
+            "Các bạn khác nhận xét, bổ sung góc nhìn thực tiễn."
+          ],
+          boardContent: [
+            "- Câu hỏi nghiên cứu: Thế nào là phản ứng thuận nghịch và trạng thái cân bằng hóa học?"
+          ]
+        },
+        {
+          phase: "Kết luận và nhận định",
+          teacher: [
+            "Nhận xét tinh thần xung phong, đánh giá câu trả lời.",
+            "Dẫn dắt: Trong tự nhiên và công nghiệp, có rất nhiều phản ứng diễn ra theo hai chiều ngược nhau. Chúng ta cùng tìm hiểu bài học hôm nay."
+          ],
+          student: [
+            "Lắng nghe nhận xét của GV, ghi tiêu đề bài học vào vở."
+          ],
+          boardContent: [
+            "-> Mục tiêu: Hiểu bản chất phản ứng thuận nghịch và cân bằng động."
+          ]
+        }
+      ],
       assessment: {
-        method: "Quan sát thái độ tham gia và đánh giá câu trả lời miệng",
-        criteria: "Học sinh chỉ ra được tính chất 2 chiều của quá trình biến đổi hóa học."
+        method: "Quan sát thái độ tham gia và câu trả lời miệng của học sinh",
+        criteria: "Nêu được dự đoán về tính 2 chiều của quá trình biến đổi."
       }
     },
     {
       id: "act_2",
       activityNumber: 2,
       period: 1,
-      title: "Hình thành kiến thức: Khái niệm phản ứng thuận nghịch và trạng thái cân bằng hóa học",
+      title: "Hình thành kiến thức: Phản ứng thuận nghịch và Trạng thái cân bằng hóa học",
       type: "HINH_THANH_KIEN_THUC",
-      typeLabel: "Hoạt động 2: Khám phá bản chất cân bằng động (25 phút)",
-      durationMinutes: 25,
-      bigQuestion: "Tại trạng thái cân bằng, phản ứng có dừng lại không? Vì sao nồng độ các chất không đổi?",
-      objective: "Hiểu rõ phản ứng một chiều, phản ứng thuận nghịch, khái niệm tốc độ phản ứng thuận (vt) và nghịch (vn), bản chất cân bằng động khi vt = vn.",
-      content: "Nghiên cứu đồ thị biến thiên tốc độ phản ứng và nồng độ các chất theo thời gian cho phản ứng H2 + I2 ⇌ 2HI.",
-      product: "Hoàn thành Phiếu học tập số 1: Điền bảng so sánh và rút ra định nghĩa cân bằng hóa học.",
-      organization: {
-        teacherActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Phát Phiếu học tập số 1. Chiếu đồ thị biểu diễn tốc độ phản ứng thuận và nghịch theo thời gian của hệ H2(g) + I2(g) ⇌ 2HI(g). Yêu cầu các nhóm 4 học sinh nghiên cứu đồ thị và trả lời 3 câu hỏi trong phiếu."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Bao quát lớp học, hướng dẫn các nhóm gặp khó khăn khi đọc giao điểm và độ dốc của đường biểu diễn tốc độ trên đồ thị."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Gọi đại diện nhóm 2 lên bảng vẽ sơ đồ tóm tắt; mời nhóm 5 phản biện về việc tại sao gọi là 'cân bằng động' chứ không phải 'cân bằng tĩnh'."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Chuẩn hóa định nghĩa: Trạng thái cân bằng của phản ứng thuận nghịch là trạng thái mà tốc độ phản ứng thuận bằng tốc độ phản ứng nghịch (vt = vn > 0). Tại cân bằng, phản ứng vẫn diễn ra nên nồng độ các chất không đổi."
-          }
-        ],
-        studentActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Nhận Phiếu học tập số 1, phân công nhiệm vụ nhóm trưởng, thư ký và người báo cáo."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Phân tích đồ thị: Nhận diện vt giảm dần theo thời gian, vn tăng dần từ 0, đến thời điểm t_cb thì vt = vn."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Trình bày câu trả lời của nhóm, giải thích luận điểm 'cân bằng động' dựa trên sự chuyển động không ngừng của các phân tử."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Ghi chép định nghĩa chuẩn và các đặc điểm cốt lõi của cân bằng hóa học vào vở."
-          }
-        ]
-      },
+      typeLabel: "Hoạt động 2: Khám phá Phản ứng thuận nghịch & Cân bằng hóa học (23 phút)",
+      durationMinutes: 23,
+      bigQuestion: "Tại sao tại trạng thái cân bằng, nồng độ các chất không đổi nhưng phản ứng hóa học vẫn không dừng lại?",
+      objective: "Hiểu khái niệm phản ứng thuận nghịch, đặc điểm động của cân bằng hóa học và đồ thị tốc độ phản ứng theo thời gian.",
+      content: "Nghiên cứu SGK, phân tích phản ứng H2(g) + I2(g) ⇌ 2HI(g), làm việc với Phiếu học tập số 1 và quan sát mô phỏng PhET.",
+      product: "Phiếu học tập số 1 hoàn thiện, đồ thị biểu diễn tốc độ phản ứng thuận/nghịch theo thời gian.",
+      organization: [
+        {
+          phase: "Chuyển giao nhiệm vụ học tập",
+          teacher: [
+            "Phát Phiếu học tập số 1 cho các nhóm 4 học sinh.",
+            "Giao nhiệm vụ: Đọc mục I SGK và quan sát mô phỏng phản ứng H2 + I2 ⇌ 2HI ở 445°C để hoàn thành 3 câu hỏi trong phiếu."
+          ],
+          student: [
+            "Nhận Phiếu học tập số 1 từ GV, phân công vai trò trong nhóm (nhóm trưởng, thư kí, báo cáo viên)."
+          ],
+          boardContent: [
+            "I. Khái niệm phản ứng thuận nghịch và cân bằng hóa học",
+            "1. Phản ứng một chiều và phản ứng thuận nghịch:",
+            "- Phản ứng một chiều: chỉ xảy ra theo một chiều từ chất đầu tạo sản phẩm (dùng mũi tên ->).",
+            "- Phản ứng thuận nghịch: trong cùng điều kiện, xảy ra đồng thời theo 2 chiều ngược nhau (dùng mũi tên ⇌)."
+          ]
+        },
+        {
+          phase: "Thực hiện nhiệm vụ",
+          teacher: [
+            "Chiếu mô phỏng PhET Reversible Reactions lên màn hình.",
+            "Quan sát các nhóm làm việc, hỗ trợ nhóm gặp khó khăn khi vẽ đồ thị tốc độ vt và vn theo thời gian."
+          ],
+          student: [
+            "Thảo luận nhóm hoàn thành Phiếu học tập số 1.",
+            "Phân tích đồ thị: vt giảm dần, vn tăng dần; đến thời điểm t_cb thì vt = vn > 0 (trạng thái cân bằng)."
+          ],
+          boardContent: [
+            "2. Trạng thái cân bằng:",
+            "- Là trạng thái của phản ứng thuận nghịch khi tốc độ phản ứng thuận bằng tốc độ phản ứng nghịch (vt = vn).",
+            "- Cân bằng hóa học là cân bằng ĐỘNG (phản ứng vẫn tiếp diễn ở cấp độ phân tử)."
+          ]
+        },
+        {
+          phase: "Báo cáo kết quả và thảo luận",
+          teacher: [
+            "Mời đại diện nhóm 1 và nhóm 3 lên bảng trình bày định nghĩa và giải thích đồ thị.",
+            "Mời nhóm 2 và 4 phản biện câu hỏi: 'Tại sao cân bằng hóa học là cân bằng động?'"
+          ],
+          student: [
+            "Đại diện nhóm 1 trình bày kết quả phiếu học tập.",
+            "Nhóm 2 bổ sung: Cân bằng động vì các phân tử vẫn va chạm và phản ứng liên tục với tốc độ 2 chiều bằng nhau."
+          ],
+          boardContent: [
+            "- Đặc điểm:",
+            "  + vt = vn > 0",
+            "  + Nồng độ các chất trong hệ không đổi theo thời gian (ở nhiệt độ xác định)."
+          ]
+        },
+        {
+          phase: "Kết luận và nhận định",
+          teacher: [
+            "Chuẩn hóa kiến thức: Nhấn mạnh dấu mũi tên thuận nghịch ⇌ và bản chất động của cân bằng.",
+            "Chốt tiêu chí đánh giá trên Rubric hoạt động nhóm."
+          ],
+          student: [
+            "Ghi nhớ các khái niệm cốt lõi, chỉnh sửa bổ sung vào vở ghi."
+          ],
+          boardContent: [
+            "-> Kết luận cốt lõi: Phản ứng thuận nghịch không bao giờ xảy ra hoàn toàn (hiệu suất luôn < 100%)."
+          ]
+        }
+      ],
       assessment: {
-        method: "Đánh giá sản phẩm Phiếu học tập số 1 và phần trình bày nhóm",
-        criteria: "Giải thích chính xác điều kiện vt = vn và bản chất cân bằng động."
+        method: "Đánh giá qua Phiếu học tập số 1 và câu trả lời đại diện nhóm",
+        criteria: "Giải thích đúng khái niệm cân bằng động và vẽ đúng đồ thị vt = vn."
       }
     },
     {
       id: "act_3",
       activityNumber: 3,
       period: 1,
-      title: "Luyện tập: Viết biểu thức hằng số cân bằng Kc",
-      type: "LUYEN_TAP",
-      typeLabel: "Hoạt động 3: Thiết lập và tính toán hằng số cân bằng Kc (10 phút)",
-      durationMinutes: 10,
-      bigQuestion: "Giá trị Kc cho biết điều gì về mức độ diễn ra của phản ứng thuận nghịch?",
-      objective: "Viết đúng biểu thức Kc cho hệ đồng thể và dị thể; hiểu ý nghĩa Kc rất lớn hoặc rất nhỏ.",
-      content: "Luyện tập viết biểu thức Kc cho phản ứng tổng hợp NH3, phân hủy CaCO3 và tính Kc từ số liệu nồng độ cân bằng.",
-      product: "Đáp án các bài tập trắc nghiệm và tự luận ngắn trên Phiếu học tập số 2.",
-      organization: {
-        teacherActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Giới thiệu biểu thức tổng quát aA + bB ⇌ cC + dD => Kc = ([C]^c * [D]^d) / ([A]^a * [B]^b). Lưu ý không đưa nồng độ chất rắn vào biểu thức. Yêu cầu làm việc cá nhân 3 bài tập nhanh."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Theo dõi học sinh làm bài, nhắc nhở lỗi thường gặp khi bỏ quên số mũ tương ứng với hệ số tỉ lượng."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Chiếu bài làm của 2 học sinh qua camera/máy chiếu, tổ chức chấm chéo đôi bạn cùng bàn."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Nhấn mạnh: Kc chỉ phụ thuộc vào bản chất phản ứng và nhiệt độ; Kc >> 1 chứng tỏ phản ứng thuận chiếm ưu thế."
-          }
-        ],
-        studentActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Ghi nhận công thức tổng quát và quy tắc loại trừ chất rắn khỏi biểu thức hằng số cân bằng."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Làm việc độc lập trên phiếu: Viết Kc cho N2 + 3H2 ⇌ 2NH3 và C(s) + CO2(g) ⇌ 2CO(g)."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Đổi bài cho bạn bên cạnh để chấm chéo, thảo luận các điểm sai sót về hệ số mũ."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Sửa chữa bài tập vào vở và ghi nhớ quy tắc tính toán."
-          }
-        ]
-      },
+      title: "Hình thành kiến thức: Biểu thức Hằng số cân bằng (Kc) và ý nghĩa",
+      type: "HINH_THANH_KIEN_THUC",
+      typeLabel: "Hoạt động 3: Thiết lập biểu thức Hằng số cân bằng Kc (15 phút)",
+      durationMinutes: 15,
+      bigQuestion: "Hằng số cân bằng Kc phụ thuộc vào những yếu tố nào và cho ta biết điều gì về mức độ diễn ra của phản ứng?",
+      objective: "Viết đúng biểu thức Kc cho các phản ứng đồng thể và dị thể; hiểu ý nghĩa của Kc đối với chiều hướng phản ứng.",
+      content: "Nghiên cứu biểu thức tổng quát aA + bB ⇌ cC + dD, làm bài tập vận dụng viết biểu thức Kc trong Phiếu học tập số 2.",
+      product: "Công thức tổng quát và biểu thức Kc viết chính xác cho 4 phản ứng hóa học cụ thể.",
+      organization: [
+        {
+          phase: "Chuyển giao nhiệm vụ học tập",
+          teacher: [
+            "Giới thiệu phản ứng tổng quát: aA + bB ⇌ cC + dD.",
+            "Yêu cầu học sinh viết biểu thức tính Kc và giải thích quy ước đối với chất rắn."
+          ],
+          student: [
+            "Theo dõi bài giảng, ghi chép biểu thức Kc vào vở."
+          ],
+          boardContent: [
+            "II. Hằng số cân bằng của phản ứng thuận nghịch (Kc)",
+            "1. Biểu thức tổng quát:",
+            "Xét hệ: aA + bB ⇌ cC + dD",
+            "Kc = ([C]^c * [D]^d) / ([A]^a * [B]^b)",
+            "(Trong đó [A], [B], [C], [D] là nồng độ mol của các chất ở trạng thái cân bằng)."
+          ]
+        },
+        {
+          phase: "Thực hiện nhiệm vụ",
+          teacher: [
+            "Giao bài tập nhanh trong Phiếu học tập số 2: Viết Kc cho phản ứng tổng hợp NH3 và phản ứng nhiệt phân CaCO3(s) ⇌ CaO(s) + CO2(g).",
+            "Nhắc nhở học sinh lưu ý không đưa nồng độ chất rắn vào biểu thức Kc."
+          ],
+          student: [
+            "Làm việc cá nhân hoàn thành bài tập viết biểu thức Kc.",
+            "Lưu ý: Đối với chất rắn (như CaCO3, CaO) nồng độ coi như hằng số nên không có mặt trong biểu thức: Kc = [CO2]."
+          ],
+          boardContent: [
+            "2. Quy ước quan trọng:",
+            "- Chất rắn không xuất hiện trong biểu thức Kc.",
+            "- Kc chỉ phụ thuộc vào bản chất phản ứng và NHIỆT ĐỘ.",
+            "Ví dụ 1: N2(g) + 3H2(g) ⇌ 2NH3(g) => Kc = [NH3]^2 / ([N2] * [H2]^3)",
+            "Ví dụ 2: CaCO3(s) ⇌ CaO(s) + CO2(g) => Kc = [CO2]"
+          ]
+        },
+        {
+          phase: "Báo cáo kết quả và thảo luận",
+          teacher: [
+            "Gọi 2 học sinh lên bảng viết biểu thức Kc của 2 ví dụ.",
+            "Hỏi: 'Nếu Kc rất lớn (Kc >> 1) hoặc rất nhỏ (Kc << 1) thì phản ứng ưu tiên diễn ra theo chiều nào?'"
+          ],
+          student: [
+            "Học sinh lên bảng làm bài tập.",
+            "Thảo luận trả lời: Kc rất lớn -> phản ứng thuận chiếm ưu thế; Kc rất nhỏ -> phản ứng thuận xảy ra rất ít."
+          ],
+          boardContent: [
+            "3. Ý nghĩa của Kc:",
+            "- Kc càng lớn: phản ứng thuận càng chiếm ưu thế (hiệu suất tạo sản phẩm cao).",
+            "- Kc càng nhỏ: phản ứng nghịch chiếm ưu thế."
+          ]
+        },
+        {
+          phase: "Kết luận và nhận định",
+          teacher: [
+            "Nhận xét, đánh giá bài làm của học sinh trên bảng.",
+            "Chốt kiến thức: Kc là đại lượng định lượng đặc trưng cho trạng thái cân bằng ở một nhiệt độ xác định."
+          ],
+          student: [
+            "Sửa bài tập vào vở, ghi nhớ quy ước chất rắn."
+          ],
+          boardContent: [
+            "-> Ghi nhớ: Kc KHÔNG phụ thuộc vào nồng độ ban đầu hay chất xúc tác, CHỈ phụ thuộc vào nhiệt độ."
+          ]
+        }
+      ],
       assessment: {
-        method: "Chấm chéo đồng đẳng giữa học sinh",
-        criteria: "Viết đúng biểu thức có hệ số mũ và loại trừ chất rắn chính xác 100%."
+        method: "Kiểm tra bài tập viết biểu thức Kc trên bảng và vở học sinh",
+        criteria: "Viết đúng 100% biểu thức Kc có lũy thừa hệ số tỉ lượng và loại bỏ đúng chất rắn."
       }
     },
     {
       id: "act_4",
       activityNumber: 4,
       period: 2,
-      title: "Hình thành kiến thức: Các yếu tố ảnh hưởng đến chuyển dịch cân bằng - Nguyên lí Le Chatelier",
-      type: "HINH_THANH_KIEN_THUC",
-      typeLabel: "Hoạt động 4: Thí nghiệm và khám phá Nguyên lí Le Chatelier (25 phút)",
+      title: "Luyện tập & Khám phá: Sự chuyển dịch cân bằng và Nguyên lí Le Chatelier",
+      type: "LUYEN_TAP",
+      typeLabel: "Hoạt động 4: Nghiên cứu các yếu tố ảnh hưởng & Nguyên lí Le Chatelier (25 phút)",
       durationMinutes: 25,
-      bigQuestion: "Khi một hệ đang cân bằng bị tác động từ bên ngoài (nhiệt độ, nồng độ, áp suất), hệ sẽ tự điều chỉnh như thế nào?",
-      objective: "Phát biểu chính xác nguyên lí Le Chatelier và giải thích được chiều chuyển dịch cân bằng dưới tác động của các yếu tố.",
-      content: "Nghiên cứu thí nghiệm chuyển dịch cân bằng: 2NO2 (màu nâu đỏ) ⇌ N2O4 (không màu, delta H < 0) và tương tác mô phỏng PhET.",
-      product: "Bảng phân tích chiều chuyển dịch của hệ phản ứng khi tăng/giảm nhiệt độ, áp suất và nồng độ trên Phiếu học tập số 3.",
-      organization: {
-        teacherActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Trình chiếu video thí nghiệm 2 ống nghiệm chứa khí NO2 ngâm đồng thời vào cốc nước nóng (60°C) và cốc nước đá (0°C). Yêu cầu học sinh quan sát sự thay đổi sắc độ màu nâu đỏ và thảo luận nhóm về chiều chuyển dịch."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Đi đến các nhóm, hướng dẫn học sinh kết nối chiều tỏa nhiệt (delta H < 0) với việc hạ nhiệt độ và màu sắc nhạt dần."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Đại diện nhóm 1 trình bày ảnh hưởng của nhiệt độ; nhóm 3 trình bày ảnh hưởng của áp suất; nhóm 4 phản biện về vai trò của chất xúc tác."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Khái quát Nguyên lí Le Chatelier: Một phản ứng thuận nghịch đang ở trạng thái cân bằng, khi chịu một tác động từ bên ngoài như biến đổi nồng độ, nhiệt độ, áp suất thì cân bằng sẽ chuyển dịch theo chiều làm giảm tác động đó."
-          }
-        ],
-        studentActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Quan sát thí nghiệm, ghi lại hiện tượng: Ống ngâm nước đá màu nâu đỏ nhạt dần; ống ngâm nước nóng màu nâu đỏ đậm lên."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Thảo luận nhóm để phân tích nguyên nhân: Hạ nhiệt độ làm cân bằng chuyển dịch theo chiều tỏa nhiệt để chống lại sự hạ nhiệt độ."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Trình bày luận điểm trước lớp, sử dụng sơ đồ mũi tên chuyển dịch và trả lời câu hỏi phản biện của bạn học."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Ghi nhớ và học thuộc nguyên lí Le Chatelier; ghi lại lưu ý: Chất xúc tác chỉ làm tăng tốc độ đạt tới cân bằng chứ không làm chuyển dịch cân bằng."
-          }
-        ]
-      },
+      bigQuestion: "Khi thay đổi nhiệt độ, nồng độ hoặc áp suất, hệ cân bằng sẽ tự điều chỉnh theo quy luật nào?",
+      objective: "Khảo sát thực nghiệm/mô phỏng ảnh hưởng của nhiệt độ (hệ NO2/N2O4), nồng độ và áp suất; phát biểu và vận dụng nguyên lí Le Chatelier.",
+      content: "Thực hiện thí nghiệm ngâm bình khí NO2 vào nước nóng/nước đá; phân tích chiều chuyển dịch màu sắc nâu đỏ sang không màu; thảo luận nhóm với Phiếu học tập số 3.",
+      product: "Bảng kết quả quan sát thí nghiệm NO2, kết luận về chiều chuyển dịch cân bằng theo nguyên lí Le Chatelier.",
+      organization: [
+        {
+          phase: "Chuyển giao nhiệm vụ học tập",
+          teacher: [
+            "Trình chiếu video thí nghiệm đối chứng: 3 ống nghiệm chứa hỗn hợp khí NO2 (nâu đỏ) và N2O4 (không màu). Ống 1 để ở nhiệt độ phòng, ống 2 ngâm nước nóng (80°C), ống 3 ngâm nước đá (0°C).",
+            "Giao nhiệm vụ trong Phiếu học tập số 3: Quan sát biến đổi màu sắc và xác định chiều chuyển dịch cân bằng: 2NO2(g) [nâu đỏ] ⇌ N2O4(g) [không màu], ΔrH°298 = -58 kJ (tỏa nhiệt)."
+          ],
+          student: [
+            "Nhận nhiệm vụ, quan sát kỹ hiện tượng màu sắc ở 3 ống nghiệm.",
+            "Ghi chép hiện tượng: Ống nước nóng đậm màu nâu đỏ hơn, ống nước đá màu nhạt dần gần như không màu."
+          ],
+          boardContent: [
+            "III. Sự chuyển dịch cân bằng hóa học",
+            "1. Thí nghiệm ảnh hưởng của nhiệt độ:",
+            "2NO2(g, nâu đỏ) ⇌ N2O4(g, không màu)   ΔrH°298 = -58 kJ (phản ứng tỏa nhiệt)",
+            "- Khi đun nóng (tăng T): màu nâu đỏ đậm lên -> cân bằng chuyển dịch sang chiều nghịch (thu nhiệt).",
+            "- Khi làm lạnh (giảm T): màu nhạt đi -> cân bằng chuyển dịch sang chiều thuận (tỏa nhiệt)."
+          ]
+        },
+        {
+          phase: "Thực hiện nhiệm vụ",
+          teacher: [
+            "Hướng dẫn học sinh phân tích: Phản ứng tỏa nhiệt (chiều thuận) tạo ra nhiệt; khi bị ép tăng nhiệt độ, hệ phản ứng chống lại bằng cách chuyển dịch theo chiều thu nhiệt (chiều nghịch) để tiêu bớt nhiệt.",
+            "Mở rộng phân tích tiếp ảnh hưởng của nồng độ và áp suất."
+          ],
+          student: [
+            "Thảo luận nhóm hoàn thành Phiếu học tập số 3.",
+            "Rút ra quy luật tổng quát: Hệ luôn chuyển dịch theo chiều chống lại tác động bên ngoài."
+          ],
+          boardContent: [
+            "- Ảnh hưởng của nồng độ: Tăng nồng độ chất nào -> cân bằng chuyển dịch theo chiều làm giảm chất đó.",
+            "- Ảnh hưởng của áp suất: Tăng áp suất -> chuyển dịch theo chiều làm giảm số mol khí (giảm áp suất)."
+          ]
+        },
+        {
+          phase: "Báo cáo kết quả và thảo luận",
+          teacher: [
+            "Mời đại diện nhóm 2 phát biểu quy luật tổng quát rút ra từ các thí nghiệm.",
+            "Mời nhóm 4 đối chiếu với định nghĩa Nguyên lí Le Chatelier trong SGK."
+          ],
+          student: [
+            "Đại diện nhóm 2 báo cáo kết quả thảo luận.",
+            "Cả lớp thảo luận và phát biểu nguyên lí Le Chatelier."
+          ],
+          boardContent: [
+            "- Lưu ý đặc biệt: CHẤT XÚC TÁC KHÔNG làm chuyển dịch cân bằng, chỉ làm phản ứng nhanh đạt tới trạng thái cân bằng."
+          ]
+        },
+        {
+          phase: "Kết luận và nhận định",
+          teacher: [
+            "Chuẩn hóa và phát biểu Nguyên lí chuyển dịch cân bằng Le Chatelier.",
+            "Tổng kết bảng quy tắc nhớ nhanh cho 3 yếu tố nồng độ, nhiệt độ, áp suất."
+          ],
+          student: [
+            "Lắng nghe, ghi chép định nghĩa nguyên lí Le Chatelier và bảng tóm tắt vào vở."
+          ],
+          boardContent: [
+            "2. Nguyên lí Le Chatelier (Lơ Sa-tơ-li-ê):",
+            "Một phản ứng thuận nghịch đang ở trạng thái cân bằng, khi chịu tác động từ bên ngoài (nhiệt độ, nồng độ, áp suất) thì cân bằng sẽ chuyển dịch theo chiều làm giảm tác động đó.",
+            "- Tăng nhiệt độ -> chuyển dịch theo chiều thu nhiệt (ΔH > 0).",
+            "- Giảm nhiệt độ -> chuyển dịch theo chiều tỏa nhiệt (ΔH < 0).",
+            "- Tăng áp suất -> chuyển dịch theo chiều giảm số mol khí."
+          ]
+        }
+      ],
       assessment: {
         method: "Bảng kiểm quan sát và câu hỏi trắc nghiệm tương tác",
         criteria: "Dự đoán đúng 100% chiều chuyển dịch khi thay đổi từng yếu tố riêng lẻ."
@@ -377,44 +480,71 @@ export const SAMPLE_LESSON_PLAN_EQUILIBRIUM: LessonPlan = {
       objective: "Vận dụng nguyên lí Le Chatelier để giải quyết vấn đề sản xuất thực tiễn trong công nghiệp hóa chất.",
       content: "Nghiên cứu phản ứng: N2(g) + 3H2(g) ⇌ 2NH3(g) (delta H = -92 kJ). Đề xuất giải pháp áp suất, nhiệt độ và chất xúc tác.",
       product: "Bài thuyết trình ngắn dạng Infographic hoặc Sơ đồ công nghệ tối ưu hóa quá trình Haber-Bosch của nhóm.",
-      organization: {
-        teacherActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Đặt vấn đề: 'Phân đạm là nguồn dinh dưỡng thiết yếu cho nông nghiệp nuôi sống hàng tỉ người. Các em hãy đóng vai trò Kỹ sư công nghệ hóa chất, đề xuất điều kiện nhiệt độ và áp suất cho phản ứng tổng hợp NH3, có tính đến cả tốc độ phản ứng và sự an toàn kinh tế'."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Gợi ý các nhóm sử dụng AI để tra cứu thông số thực tế của nhà máy phân đạm Phú Mỹ hoặc Cà Mau (nhiệt độ 450°C, áp suất 200 bar, xúc tác Fe)."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Cho 2 nhóm trình bày phương án; đặt câu hỏi phản biện: 'Tại sao không chọn nhiệt độ phòng để cân bằng chuyển dịch nhiều sang NH3?'"
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Tổng kết: Trong công nghiệp cần dung hòa giữa yếu tố cân bằng (hiệu suất) và yếu tố động học (tốc độ phản ứng) cùng yếu tố kinh tế - an toàn kỹ thuật."
-          }
-        ],
-        studentActivities: [
-          {
-            phase: "Chuyển giao nhiệm vụ",
-            details: "Nhận đề bài tình huống thực tiễn, phân tích phản ứng tỏa nhiệt và giảm số mol khí (4 mol khí -> 2 mol khí)."
-          },
-          {
-            phase: "Thực hiện nhiệm vụ",
-            details: "Sử dụng AI/Internet tra cứu thông số kỹ thuật thực tế, lập luận vì sao chọn nhiệt độ 400 - 450°C thay vì nhiệt độ quá thấp."
-          },
-          {
-            phase: "Báo cáo và thảo luận",
-            details: "Trình bày giải pháp: Tăng áp suất lên ~200 atm; dùng nhiệt độ vừa phải 450°C kèm xúc tác bột sắt để phản ứng đủ nhanh; tuần hoàn khí N2 và H2 chưa phản ứng."
-          },
-          {
-            phase: "Kết luận và nhận định",
-            details: "Rút ra bài học tư duy toàn diện: Khoa học luôn gắn liền với thực tiễn, kinh tế và môi trường."
-          }
-        ]
-      },
+      organization: [
+        {
+          phase: "Chuyển giao nhiệm vụ học tập",
+          teacher: [
+            "Đặt vấn đề: 'Phân đạm là nguồn dinh dưỡng thiết yếu cho nông nghiệp nuôi sống hàng tỉ người. Các em hãy đóng vai trò Kỹ sư công nghệ hóa chất, đề xuất điều kiện nhiệt độ và áp suất cho phản ứng tổng hợp NH3, có tính đến cả tốc độ phản ứng và sự an toàn kinh tế'.",
+            "Cung cấp thông tin phản ứng: N2(g) + 3H2(g) ⇌ 2NH3(g), ΔrH°298 = -92 kJ (tỏa nhiệt, giảm 4 mol khí -> 2 mol khí)."
+          ],
+          student: [
+            "Nhận đề bài tình huống thực tiễn, phân tích phản ứng tỏa nhiệt và giảm số mol khí (4 mol khí -> 2 mol khí)."
+          ],
+          boardContent: [
+            "IV. Vận dụng thực tiễn: Quá trình Haber-Bosch tổng hợp NH3",
+            "N2(g) + 3H2(g) ⇌ 2NH3(g)   ΔrH°298 = -92 kJ",
+            "- Chiều thuận: tỏa nhiệt, giảm thể tích khí (4 mol -> 2 mol)."
+          ]
+        },
+        {
+          phase: "Thực hiện nhiệm vụ",
+          teacher: [
+            "Gợi ý các nhóm sử dụng AI/Internet để tra cứu thông số thực tế của nhà máy phân đạm Phú Mỹ hoặc Cà Mau (nhiệt độ 450°C, áp suất 200 bar, xúc tác Fe).",
+            "Hướng dẫn phân tích mâu thuẫn: Về cân bằng cần hạ T để tăng hiệu suất, nhưng hạ T làm tốc độ phản ứng quá chậm -> Chọn nhiệt độ tối ưu 400 - 450°C kèm xúc tác bột sắt (Fe)."
+          ],
+          student: [
+            "Sử dụng AI/Internet tra cứu thông số kỹ thuật thực tế, lập luận vì sao chọn nhiệt độ 400 - 450°C thay vì nhiệt độ quá thấp."
+          ],
+          boardContent: [
+            "Phân tích điều kiện tối ưu:",
+            "- Áp suất: Tăng áp suất (~200 bar) để cân bằng chuyển dịch theo chiều thuận.",
+            "- Nhiệt độ: 400 - 450°C (dung hòa giữa hiệu suất cân bằng và tốc độ phản ứng).",
+            "- Xúc tác Fe: Tăng tốc độ đạt trạng thái cân bằng."
+          ]
+        },
+        {
+          phase: "Báo cáo kết quả và thảo luận",
+          teacher: [
+            "Mời 2 nhóm trình bày giải pháp kỹ thuật.",
+            "Đặt câu hỏi chất vấn: 'Tại sao không tăng áp suất lên 1000 bar để hiệu suất cao hơn nữa?'"
+          ],
+          student: [
+            "Đại diện nhóm thuyết trình giải pháp tối ưu hóa.",
+            "Trả lời câu hỏi: Áp suất quá cao đòi hỏi thiết bị chịu áp đắt đỏ, tốn kém chi phí và nguy cơ cháy nổ cao."
+          ],
+          boardContent: [
+            "- Tách NH3 lỏng liên tục khỏi hỗn hợp để làm cân bằng tiếp tục chuyển dịch sang chiều thuận.",
+            "- Khí N2 và H2 chưa phản ứng được tuần hoàn trở lại buồng tổng hợp."
+          ]
+        },
+        {
+          phase: "Kết luận và nhận định",
+          teacher: [
+            "Tổng kết và đánh giá cao tư duy kỹ thuật đa chiều của học sinh.",
+            "Chốt lại bài học: Trong sản xuất công nghiệp, hóa học luôn gắn kết chặt chẽ với kinh tế, năng lượng và an toàn môi trường."
+          ],
+          student: [
+            "Tổng kết bài học, hoàn thiện sơ đồ công nghệ tổng hợp NH3 vào sổ tay dự án học tập."
+          ],
+          boardContent: [
+            "Kết luận điều kiện thực tế trong công nghiệp:",
+            "- Áp suất: 150 - 200 bar",
+            "- Nhiệt độ: 400 - 450°C",
+            "- Chất xúc tác: Fe (trộn thêm Al2O3, K2O)",
+            "- Hóa lỏng và tuần hoàn nguyên liệu: Giúp hiệu suất chung đạt trên 95%."
+          ]
+        }
+      ],
       assessment: {
         method: "Rubric đánh giá sản phẩm dự án nhỏ và năng lực giải quyết vấn đề",
         criteria: "Đề xuất giải pháp có cơ sở khoa học, tính khả thi và lập luận phản biện sắc bén."

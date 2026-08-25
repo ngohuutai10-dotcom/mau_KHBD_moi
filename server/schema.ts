@@ -1,16 +1,18 @@
 import { Type, type Schema } from "@google/genai";
 
 export interface KHBDHeader {
-  schoolName: string;
-  department: string;
-  teacherName: string;
-  subject: string;
-  grade: "10" | "11" | "12" | string;
+  lessonName?: string;
   lessonTitle: string;
-  textbookSet: string;
+  organizationType?: string;
+  schoolName?: string;
+  department?: string;
+  teacherName?: string;
+  subject?: string;
+  grade: "10" | "11" | "12" | string;
+  textbookSet?: string;
   numberOfPeriods: number;
-  periodDuration: number;
-  targetAudience: string;
+  periodDuration?: number;
+  targetAudience?: string;
 }
 
 export interface GeneralCompetency {
@@ -66,9 +68,15 @@ export interface EquipmentAndMaterials {
   students: string[];
 }
 
-export interface ActivityPhase {
-  phase: string; // Chuyển giao nhiệm vụ / Thực hiện nhiệm vụ / Báo cáo và thảo luận / Kết luận và nhận định
-  details: string;
+export interface OrganizationPhase {
+  phase:
+    | "Chuyển giao nhiệm vụ học tập"
+    | "Thực hiện nhiệm vụ"
+    | "Báo cáo kết quả và thảo luận"
+    | "Kết luận và nhận định";
+  teacher: string[];
+  student: string[];
+  boardContent: string[];
 }
 
 export interface LearningActivity {
@@ -83,10 +91,7 @@ export interface LearningActivity {
   objective: string;
   content: string;
   product: string;
-  organization: {
-    teacherActivities: ActivityPhase[];
-    studentActivities: ActivityPhase[];
-  };
+  organization: OrganizationPhase[];
   assessment: {
     method: string;
     criteria: string;
@@ -136,6 +141,8 @@ export const lessonPlanGeminiSchema: Schema = {
         subject: { type: Type.STRING },
         grade: { type: Type.STRING },
         lessonTitle: { type: Type.STRING },
+        lessonName: { type: Type.STRING },
+        organizationType: { type: Type.STRING },
         textbookSet: { type: Type.STRING },
         numberOfPeriods: { type: Type.NUMBER },
         periodDuration: { type: Type.NUMBER },
@@ -274,32 +281,34 @@ export const lessonPlanGeminiSchema: Schema = {
           content: { type: Type.STRING },
           product: { type: Type.STRING },
           organization: {
-            type: Type.OBJECT,
-            properties: {
-              teacherActivities: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    phase: { type: Type.STRING },
-                    details: { type: Type.STRING }
-                  },
-                  required: ["phase", "details"]
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                phase: {
+                  type: Type.STRING,
+                  enum: [
+                    "Chuyển giao nhiệm vụ học tập",
+                    "Thực hiện nhiệm vụ",
+                    "Báo cáo kết quả và thảo luận",
+                    "Kết luận và nhận định"
+                  ]
+                },
+                teacher: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
+                },
+                student: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
+                },
+                boardContent: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
                 }
               },
-              studentActivities: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    phase: { type: Type.STRING },
-                    details: { type: Type.STRING }
-                  },
-                  required: ["phase", "details"]
-                }
-              }
-            },
-            required: ["teacherActivities", "studentActivities"]
+              required: ["phase", "teacher", "student", "boardContent"]
+            }
           },
           assessment: {
             type: Type.OBJECT,

@@ -33,35 +33,103 @@ CÁC NGUYÊN TẮC BẮT BUỘC KHI SOẠN KHBD:
 1. CẤU TRÚC THỜI LƯỢNG VÀ TIẾN TRÌNH:
    - Mỗi tiết tiêu chuẩn là 45 phút. Tổng thời lượng bài dạy = số tiết × 45 phút.
    - Bài dạy phân bổ đầy đủ 4 loại hoạt động theo tiến trình dạy học:
-     + 1. Hoạt động Khởi động (Mở đầu / Tạo tình huống có vấn đề): Tạo mâu thuẫn nhận thức, liên hệ thực tiễn, định hướng bài học.
-     + 2. Hoạt động Hình thành kiến thức mới: Mỗi nội dung kiến thức trọng tâm là MỘT hoạt động riêng biệt, có câu hỏi lớn/vấn đề lớn, tổ chức học sinh tìm tòi, khám phá, làm thí nghiệm/mô phỏng, thảo luận, phản biện.
+     + 1. Hoạt động Khởi động (Mở đầu / Tạo tình huống có vấn đề): Tạo mâu thuẫn nhận thức, liên hệ thực tiễn, định hướng bài học, có Câu hỏi lớn kích thích tư duy.
+     + 2. Hoạt động Hình thành kiến thức mới: Mỗi nội dung kiến thức trọng tâm là MỘT hoạt động riêng biệt, có Câu hỏi lớn, tổ chức học sinh tìm tòi, khám phá, làm thí nghiệm/mô phỏng, thảo luận, phản biện.
      + 3. Hoạt động Luyện tập: Bài tập củng cố, câu hỏi trắc nghiệm/tự luận phân hóa, sơ đồ hóa kiến thức.
      + 4. Hoạt động Vận dụng: Vấn đề thực tiễn đời sống, sản xuất, bảo vệ môi trường, giải pháp công nghệ hoặc dự án nhỏ.
 
 2. MỤC TIÊU BÀI DẠY (I. MỤC TIÊU):
-   - 1. Kiến thức: Nêu rõ các kiến thức trọng tâm học sinh cần đạt sau bài học (theo chuẩn CT GDPT 2018).
-   - 2. Năng lực (bắt buộc đúng cấu trúc phân nhóm):
-     a) Năng lực chung: Gồm Tự chủ và tự học (TCTH), Giao tiếp và hợp tác (GTHT), Giải quyết vấn đề và sáng tạo (GQVBSC) với hành vi quan sát được cụ thể của học sinh.
-     b) Năng lực hóa học: 3 thành phần (Nhận thức hóa học - NTHH, Tìm hiểu thế giới tự nhiên dưới góc độ hóa học - THTGTN, Vận dụng kiến thức kĩ năng đã học - VDKN) viết dưới dạng các hành vi đo lường được (viết PTHH, giải thích, so sánh, làm thí nghiệm, tính toán...).
-     c) Năng lực số (nếu có tích hợp): Chọn mã NLS chuẩn (NLS1.1, NLS2.2, NLS3.1, NLS5.1, v.v.) và nêu rõ hoạt động minh chứng trong bài.
-     d) Năng lực AI theo QĐ 2422/QĐ-BGDĐT (nếu có tích hợp): Chọn mã AI chuẩn cấp THPT (AI1.1, AI2.1, AI2.2, AI2.3, AI3.1, AI3.2, AI4.1, AI5.1, v.v.) kèm minh chứng hành vi học sinh tương tác với AI, kiểm chứng thông tin và đạo đức sử dụng AI.
-     e) Năng lực tiếng Anh (nếu có tích hợp): Cung cấp thuật ngữ chuyên ngành hóa học (IUPAC, danh pháp quốc tế) và nhiệm vụ đọc/nói/viết thuật ngữ tiếng Anh phù hợp.
-   - 3. Phẩm chất: CHỈ CHỌN trong 5 phẩm chất chủ yếu: Yêu nước, Nhân ái, Chăm chỉ, Trung thực, Trách nhiệm. TUYỆT ĐỐI CHỈ NÊU phẩm chất có hoạt động cụ thể và minh chứng rõ ràng trong tiến trình bài dạy.
+   - 1. Kiến thức: Nêu rõ các kiến thức trọng tâm học sinh cần đạt sau bài học (theo chuẩn CT GDPT 2018). Trình bày từng ý bắt đầu bằng dấu "- ".
+   - 2. Năng lực (BẮT BUỘC TUÂN THỦ QUY TẮC MÃ HÓA VÀ TRÌNH BÀY NĂNG LỰC):
+     QUY TẮC TRÌNH BÀY NĂNG LỰC:
+     1. Năng lực chung:
+        - KHÔNG xuất các mã TCTH, GTHT, GQVBSC hay (TCTH): TCTH.1;2;3.
+        - Mỗi năng lực trình bày bằng một dòng bắt đầu bằng "- [Tên năng lực]: [Hành vi cụ thể]".
+        Ví dụ:
+        - Tự chủ và tự học: Chủ động nghiên cứu SGK, tài liệu học tập, tự thực hiện nhiệm vụ cá nhân...
+        - Giao tiếp và hợp tác: Phân công nhiệm vụ nhóm, trao đổi, phản biện và thống nhất kết luận...
+        - Giải quyết vấn đề và sáng tạo: Phát hiện vấn đề, đề xuất giả thuyết và giải pháp khoa học...
 
-3. TỔ CHỨC THỰC HIỆN TỪNG HOẠT ĐỘNG:
-   - Tổ chức thực hiện được thiết kế 2 luồng song song rõ ràng: "Hoạt động của giáo viên" và "Hoạt động của học sinh".
-   - Mỗi hoạt động thể hiện đầy đủ 4 pha sư phạm chuẩn mực:
-     + Pha 1: Chuyển giao nhiệm vụ
-     + Pha 2: Thực hiện nhiệm vụ
-     + Pha 3: Báo cáo và thảo luận
-     + Pha 4: Kết luận và nhận định
-   - TUYỆT ĐỐI KHÔNG ghi chữ "Bước 1", "Bước 2", "Bước 3", "Bước 4" vào nội dung văn bản. Dùng tên pha sư phạm chuẩn xác hoặc tiêu đề gọn gàng.
-   - Hoạt động của giáo viên phải nêu rõ lệnh giao việc, câu hỏi dẫn dắt, hỗ trợ quan sát, hướng dẫn thảo luận và chốt chuẩn kiến thức.
-   - Hoạt động của học sinh phải nêu cụ thể hành động: nhận lệnh, cá nhân suy nghĩ, thảo luận nhóm, ghi chép phiếu học tập, đại diện báo cáo, nhận xét phản biện, ghi kết luận vào vở.
+     2. Năng lực hóa học:
+        - KHÔNG xuất các mã NTHH, THTGTN, VDKN hay (NTHH): NTHH.1;2;3.
+        - Mỗi thành phần trình bày bằng một dòng bắt đầu bằng "- [Tên thành phần]: [Hành vi cụ thể]".
+        Ví dụ:
+        - Nhận thức hóa học: Trình bày và giải thích được các khái niệm, tính chất, viết đúng PTHH...
+        - Tìm hiểu thế giới tự nhiên dưới góc độ hóa học: Đề xuất giả thuyết, tiến hành thí nghiệm/mô phỏng, thu thập và xử lí số liệu...
+        - Vận dụng kiến thức, kĩ năng đã học: Vận dụng kiến thức hóa học để giải thích hiện tượng thực tế và giải quyết tình huống...
+
+     3. Năng lực số (NLS):
+        - Nếu có, bắt buộc trình bày mã đầy đủ không dấu cách theo dạng: '1.2NC2a', '1.1NC1a', '2.4NC2a', '3.1NC2a', '5.2NC1b' (hoặc mã NLS chuẩn).
+        - Trình bày dạng: "- [Mã NLS]: [Nội dung minh chứng]".
+        Ví dụ:
+        - 1.2NC2a: Học sinh phân tích, so sánh và đánh giá độ tin cậy của thông tin số...
+        - 2.4NC2a: Học sinh sử dụng công cụ số để hợp tác và hoàn thiện sản phẩm nhóm...
+
+     4. Năng lực AI theo QĐ 2422/QĐ-BGDĐT:
+        - Mã được đối chiếu theo QĐ 2422 nhưng khi hiển thị phải BỎ dấu chấm giữa lớp và chủ đề.
+        Ví dụ:
+        '12.A2.1' -> '12A2.1'
+        '10.C3.2' -> '10C3.2'
+        '11.C3.1' -> '11C3.1'
+        '11.C3.MR1' -> '11C3.MR1'
+        '12.C4.MR1' -> '12C4.MR1'
+        - Trình bày dạng: "- [Mã AI]: [Nội dung minh chứng]".
+        Ví dụ:
+        - 12A2.1: Học sinh phân tích được một số nguyên tắc đạo đức cơ bản khi sử dụng AI...
+        - 12C2.1: Học sinh lựa chọn được công cụ AI phù hợp để hỗ trợ nhiệm vụ học tập...
+
+     5. Năng lực tiếng Anh:
+        - Trình bày các dòng bắt đầu bằng "- " kèm thuật ngữ quốc tế IUPAC.
+
+     6. Dấu đầu dòng:
+        - Bắt buộc là ký tự '-', TUYỆT ĐỐI KHÔNG sử dụng bullet '•', '●', '○'.
+
+   - 3. Phẩm chất: CHỈ CHỌN trong 5 phẩm chất chủ yếu: Yêu nước, Nhân ái, Chăm chỉ, Trung thực, Trách nhiệm. Trình bày từng phẩm chất bắt đầu bằng "- [Tên phẩm chất]: [Hành vi minh chứng]".
+
+3. QUY ĐỊNH BẮT BUỘC VỀ PHẦN d. TỔ CHỨC THỰC HIỆN CỦA MỖI HOẠT ĐỘNG:
+   Phần d. Tổ chức thực hiện của MỖI hoạt động (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng) BẮT BUỘC được cấu trúc theo MẢNG 4 PHA SƯ PHẠM (organization) với BẢNG 3 CỘT:
+   - Cột 1: HOẠT ĐỘNG CỦA GV (thuộc tính "teacher": string[])
+   - Cột 2: HOẠT ĐỘNG CỦA HS (thuộc tính "student": string[])
+   - Cột 3: NỘI DUNG GHI BẢNG (thuộc tính "boardContent": string[])
+
+   Đúng 4 pha sư phạm chuẩn mực:
+   - Pha 1: "Chuyển giao nhiệm vụ học tập"
+   - Pha 2: "Thực hiện nhiệm vụ"
+   - Pha 3: "Báo cáo kết quả và thảo luận"
+   - Pha 4: "Kết luận và nhận định"
+
+   TUYỆT ĐỐI KHÔNG HIỂN THỊ HOẶC GHI: "Bước 1", "Bước 2", "Bước 3", "Bước 4".
+
+   YÊU CẦU CHI TIẾT CHO TỪNG CỘT VÀ TỪNG PHA:
+   - teacher: Nêu rõ lệnh giao việc cụ thể của GV, câu hỏi dẫn dắt, tài liệu/học liệu phát cho HS, quan sát hỗ trợ, điều hành thảo luận và chuẩn hóa kiến thức.
+   - student: Nêu cụ thể hành vi HS thực hiện: nhận nhiệm vụ, làm việc cá nhân, thảo luận nhóm, ghi chép phiếu học tập, cử đại diện báo cáo, nhận xét phản biện, ghi chép kiến thức trọng tâm vào vở.
+   - boardContent (NỘI DUNG GHI BẢNG - TUYỆT ĐỐI KHÔNG ĐƯỢC ĐỂ TRỐNG):
+     + Ở pha "Chuyển giao nhiệm vụ học tập": Ghi tên vấn đề, câu hỏi lớn, dữ kiện chính hoặc nhiệm vụ cần giải quyết.
+     + Ở pha "Thực hiện nhiệm vụ": Ghi giả thuyết, bảng dữ liệu, phương trình đang xem xét, từ khóa, nội dung trung gian cần lưu ý.
+     + Ở pha "Báo cáo kết quả và thảo luận": Ghi kết quả nhóm, dữ liệu quan trọng, phương án, nội dung cần so sánh/phản biện.
+     + Ở pha "Kết luận và nhận định": BẮT BUỘC ghi kiến thức chuẩn hóa ngắn gọn, chính xác, phù hợp để HS ghi vở (khái niệm, tính chất, quy luật, công thức, phương trình hóa học, điều kiện phản ứng, kết luận khoa học).
+
+   CÁC ĐIỀU CẤM KHI SOẠN CỘT NỘI DUNG GHI BẢNG:
+   - Không được để cột Nội dung ghi bảng rỗng;
+   - Không sao chép nguyên toàn bộ hoạt động GV sang cột ghi bảng;
+   - Không ghi nội dung dài dòng;
+   - Không ghi câu chung chung như "HS ghi bài";
+   - Không ghi sai phương trình hoặc danh pháp hóa học (tuân thủ IUPAC).
 
 4. HỌC LIỆU VÀ PHỤ LỤC:
    - Soạn thảo chi tiết Phiếu học tập (Worksheet) có kèm Hướng dẫn / Đáp án chi tiết (keyAnswer) để giáo viên có thể in và dùng ngay.
    - Kèm Tiêu chí đánh giá / Bảng kiểm (Rubrics) và Lưu ý an toàn thí nghiệm/hóa chất (nếu bài có thí nghiệm).
+
+5. QUY ĐỊNH VỀ CÂU HỎI LỚN (bigQuestion):
+   - Mỗi hoạt động phù hợp (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng) phải có một Câu hỏi lớn nhằm kích thích học sinh suy nghĩ, dự đoán, tìm tòi, khám phá, thảo luận và phản biện.
+   - Khi trình bày, chỉ sử dụng nhãn:
+     Câu hỏi lớn
+   - TUYỆT ĐỐI KHÔNG sử dụng các nhãn:
+     Câu hỏi lớn/Vấn đề
+     Câu hỏi lớn / Vấn đề
+     Câu hỏi lớn - Vấn đề
+     Vấn đề lớn/Câu hỏi lớn
+     Câu hỏi lớn/Vấn đề lớn
 
 DANH MỤC THAM CHIẾU NĂNG LỰC VÀ PHẨM CHẤT:
 ${JSON.stringify({
@@ -80,6 +148,8 @@ export function buildUserPrompt(
 ): string {
   const {
     lessonTitle,
+    lessonName,
+    organizationType = "Dạy học trên lớp",
     grade,
     textbookSet,
     numberOfPeriods,
@@ -94,14 +164,17 @@ export function buildUserPrompt(
     specialRequests = ""
   } = settings;
 
+  const actualTitle = lessonTitle || lessonName || "";
+
   return `Hãy soạn một KẾ HOẠCH BÀI DẠY (KHBD) HÓA HỌC THPT hoàn chỉnh, chi tiết và chuẩn mực với các thông tin sau:
 
 THÔNG TIN BÀI DẠY:
-- Tên bài dạy: ${lessonTitle}
+- Tên Bài học/Chủ đề: ${actualTitle}
+- Loại hình tổ chức: ${organizationType}
 - Môn học: Hóa học
 - Lớp: ${grade} (Khối THPT)
 - Bộ sách giáo khoa: ${textbookSet}
-- Số tiết dạy: ${numberOfPeriods} tiết (mỗi tiết ${periodDuration} phút; tổng ${numberOfPeriods * periodDuration} phút)
+- Thời gian thực hiện: ${numberOfPeriods} tiết (mỗi tiết ${periodDuration} phút; tổng ${numberOfPeriods * periodDuration} phút)
 - Đối tượng học sinh: ${targetAudience}
 - Giáo viên soạn: ${teacherName}
 - Đơn vị: ${schoolName} (${department})
@@ -115,9 +188,16 @@ ${specialRequests ? `YÊU CẦU ĐẶC BIỆT CỦA GIÁO VIÊN:\n${specialReque
 
 ${extractedDocumentsText ? `TÀI LIỆU NGUỒN ĐÍNH KÈM (TRÍCH XUẤT TỪ TẬP TIN DO GIÁO VIÊN TẢI LÊN):\n${extractedDocumentsText}\n` : ""}
 
-YÊU CẦU ĐẦU RA:
+YÊU CẦU ĐẦU RA BẮT BUỘC:
 - Trả về dữ liệu JSON có cấu trúc chính xác theo đúng JSON Schema đã quy định.
 - Mỗi tiết phải có đầy đủ các hoạt động phù hợp (Tổng số tiết: ${numberOfPeriods}).
-- Đầy đủ 4 pha sư phạm trong mỗi hoạt động (Chuyển giao, Thực hiện, Báo cáo/Thảo luận, Kết luận/Nhận định) ở cả 2 cột Giáo viên và Học sinh. Tuyệt đối KHÔNG ghi các từ 'Bước 1', 'Bước 2', 'Bước 3', 'Bước 4'.
+- Ở MỖI HOẠT ĐỘNG (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng), mục "d. Tổ chức thực hiện" (organization) PHẢI gồm đúng 4 pha:
+  1. "Chuyển giao nhiệm vụ học tập"
+  2. "Thực hiện nhiệm vụ"
+  3. "Báo cáo kết quả và thảo luận"
+  4. "Kết luận và nhận định"
+  với đủ 3 trường: "teacher" (string[]), "student" (string[]), "boardContent" (string[]).
+  KHÔNG được để trống "boardContent".
+  TUYỆT ĐỐI KHÔNG dùng các từ "Bước 1", "Bước 2", "Bước 3", "Bước 4".
 - Soạn đầy đủ các Phiếu học tập đính kèm trong mục Appendices với nội dung và đáp án rõ ràng.`;
 }

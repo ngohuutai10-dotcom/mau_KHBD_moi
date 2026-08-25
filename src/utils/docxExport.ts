@@ -17,38 +17,198 @@ import {
 } from "docx";
 import saveAs from "file-saver";
 import type { LessonPlan, LearningActivity } from "../types";
+import {
+  formatAICode,
+  formatDigitalCompetencyCode,
+  removeLegacyCompetencyCode,
+  removePhasePrefix,
+  cleanBigQuestion
+} from "./competencyHelper";
 
 export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   const font = "Times New Roman";
-  const primaryColor = "1E3A8A"; // Deep Blue
+  const defaultSize = 24; // 12pt (docx uses half-points: 12 * 2 = 24)
+  const defaultLineSpacing = 288; // 1.2 lines (1.0 line = 240 twips, 1.2 * 240 = 288)
 
-  // Helper for normal paragraph
+  const TABLE_BORDER = {
+    style: BorderStyle.SINGLE,
+    size: 6, // 0.75 pt in eighths of a point
+    color: "000000"
+  };
+
+  const TABLE_BORDERS = {
+    top: TABLE_BORDER,
+    bottom: TABLE_BORDER,
+    left: TABLE_BORDER,
+    right: TABLE_BORDER,
+    insideHorizontal: TABLE_BORDER,
+    insideVertical: TABLE_BORDER
+  };
+
+  const createHeaderCell = (text: string, width: number): TableCell => {
+    return new TableCell({
+      width: {
+        size: width,
+        type: WidthType.PERCENTAGE
+      },
+      shading: {
+        type: ShadingType.CLEAR,
+        fill: "FFFFFF",
+        color: "auto"
+      },
+      borders: {
+        top: TABLE_BORDER,
+        bottom: TABLE_BORDER,
+        left: TABLE_BORDER,
+        right: TABLE_BORDER
+      },
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            line: defaultLineSpacing,
+            before: 60,
+            after: 60
+          },
+          children: [
+            new TextRun({
+              text,
+              font,
+              size: defaultSize,
+              bold: true,
+              color: "000000"
+            })
+          ]
+        })
+      ]
+    });
+  };
+
+  const createTeacherCellParagraphs = (phaseName: string, items: string[]): Paragraph[] => {
+    const paragraphs: Paragraph[] = [];
+
+    if (phaseName?.trim()) {
+      paragraphs.push(
+        new Paragraph({
+          spacing: {
+            line: defaultLineSpacing,
+            before: 40,
+            after: 20
+          },
+          children: [
+            new TextRun({
+              text: `${phaseName.trim()}:`,
+              font,
+              size: defaultSize,
+              bold: true,
+              color: "000000"
+            })
+          ]
+        })
+      );
+    }
+
+    items.forEach((item) => {
+      if (!item?.trim()) return;
+      const cleanItem = removeLegacyCompetencyCode(item);
+      if (!cleanItem) return;
+
+      paragraphs.push(
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: defaultLineSpacing,
+            before: 20,
+            after: 20
+          },
+          children: [
+            new TextRun({
+              text: cleanItem,
+              font,
+              size: defaultSize,
+              color: "000000"
+            })
+          ]
+        })
+      );
+    });
+
+    if (paragraphs.length === 0) {
+      paragraphs.push(new Paragraph({ spacing: { line: defaultLineSpacing }, children: [new TextRun({ text: "", font, size: defaultSize })] }));
+    }
+
+    return paragraphs;
+  };
+
+  const createPlainCellParagraphs = (items: string[]): Paragraph[] => {
+    const validItems = Array.isArray(items)
+      ? items
+          .map((item) => removePhasePrefix(removeLegacyCompetencyCode(item)))
+          .filter((item) => typeof item === "string" && item.trim() !== "")
+      : [];
+
+    if (validItems.length === 0) {
+      return [
+        new Paragraph({
+          spacing: { line: defaultLineSpacing },
+          children: [
+            new TextRun({
+              text: "",
+              font,
+              size: defaultSize
+            })
+          ]
+        })
+      ];
+    }
+
+    return validItems.map(
+      (item) =>
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: defaultLineSpacing,
+            before: 20,
+            after: 20
+          },
+          children: [
+            new TextRun({
+              text: item.trim(),
+              font,
+              size: defaultSize,
+              color: "000000"
+            })
+          ]
+        })
+    );
+  };
+
+  // Helper for normal paragraph without bullets
   const p = (
     text: string,
     options?: {
       bold?: boolean;
       italic?: boolean;
-      size?: number; // half-points (26 = 13pt)
+      size?: number;
       color?: string;
       align?: (typeof AlignmentType)[keyof typeof AlignmentType];
       spaceBefore?: number;
       spaceAfter?: number;
-      bullet?: boolean;
     }
   ) => {
+    const sanitizedText = removeLegacyCompetencyCode(text);
     return new Paragraph({
       alignment: options?.align || AlignmentType.LEFT,
       spacing: {
-        before: options?.spaceBefore ?? 60,
-        after: options?.spaceAfter ?? 60,
-        line: 276 // ~1.15 line spacing
+        before: options?.spaceBefore ?? 40,
+        after: options?.spaceAfter ?? 40,
+        line: defaultLineSpacing
       },
-      bullet: options?.bullet ? { level: 0 } : undefined,
       children: [
         new TextRun({
-          text,
+          text: sanitizedText,
           font,
-          size: options?.size || 26, // 13pt
+          size: options?.size || defaultSize,
           bold: options?.bold || false,
           italics: options?.italic || false,
           color: options?.color || "000000"
@@ -57,30 +217,28 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     });
   };
 
-  // Helper for mixed text paragraph
+  // Helper for mixed text paragraph without bullets
   const pMixed = (
     runs: Array<{ text: string; bold?: boolean; italic?: boolean; size?: number; color?: string }>,
     options?: {
       align?: (typeof AlignmentType)[keyof typeof AlignmentType];
       spaceBefore?: number;
       spaceAfter?: number;
-      bullet?: boolean;
     }
   ) => {
     return new Paragraph({
       alignment: options?.align || AlignmentType.LEFT,
       spacing: {
-        before: options?.spaceBefore ?? 60,
-        after: options?.spaceAfter ?? 60,
-        line: 276
+        before: options?.spaceBefore ?? 40,
+        after: options?.spaceAfter ?? 40,
+        line: defaultLineSpacing
       },
-      bullet: options?.bullet ? { level: 0 } : undefined,
       children: runs.map(
-        (r) =>
+        (r, idx) =>
           new TextRun({
-            text: r.text,
+            text: idx === 0 ? removeLegacyCompetencyCode(r.text) : r.text,
             font,
-            size: r.size || 26,
+            size: r.size || defaultSize,
             bold: r.bold || false,
             italics: r.italic || false,
             color: r.color || "000000"
@@ -89,116 +247,246 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     });
   };
 
-  // Helper for Section Heading
+  // Helper to create a single-dash paragraph
+  const createDashParagraph = (text: string): Paragraph => {
+    const clean = removeLegacyCompetencyCode(text);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      children: [
+        new TextRun({
+          text: `- ${clean}`,
+          font,
+          size: defaultSize,
+          color: "000000"
+        })
+      ]
+    });
+  };
+
+  // Helper for general/chemistry/quality competency paragraph
+  const createGeneralCompetencyParagraph = (title: string, description: string): Paragraph => {
+    const cleanTitle = removeLegacyCompetencyCode(title);
+    const cleanDesc = removeLegacyCompetencyCode(description);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      children: [
+        new TextRun({
+          text: `- ${cleanTitle}: `,
+          bold: true,
+          font,
+          size: defaultSize,
+          color: "000000"
+        }),
+        new TextRun({
+          text: cleanDesc,
+          font,
+          size: defaultSize,
+          color: "000000"
+        })
+      ]
+    });
+  };
+
+  // Helper for digital competency paragraph
+  const createDigitalCompetencyParagraph = (code: string, description: string): Paragraph => {
+    const formattedCode = formatDigitalCompetencyCode(code);
+    const cleanDesc = removeLegacyCompetencyCode(description);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      children: [
+        new TextRun({
+          text: `- ${formattedCode}: `,
+          bold: true,
+          font,
+          size: defaultSize,
+          color: "000000"
+        }),
+        new TextRun({
+          text: cleanDesc,
+          font,
+          size: defaultSize,
+          color: "000000"
+        })
+      ]
+    });
+  };
+
+  // Helper for AI competency paragraph
+  const createAICompetencyParagraph = (code: string, description: string): Paragraph => {
+    const formattedCode = formatAICode(code);
+    const cleanDesc = removeLegacyCompetencyCode(description);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 30, after: 30, line: defaultLineSpacing },
+      children: [
+        new TextRun({
+          text: `- ${formattedCode}: `,
+          bold: true,
+          font,
+          size: defaultSize,
+          color: "000000"
+        }),
+        new TextRun({
+          text: cleanDesc,
+          font,
+          size: defaultSize,
+          color: "000000"
+        })
+      ]
+    });
+  };
+
+  // Helper for Section Heading (I. MỤC TIÊU, II. THIẾT BỊ..., etc.)
   const sectionHeading = (title: string) => {
     return new Paragraph({
       heading: HeadingLevel.HEADING_1,
-      spacing: { before: 200, after: 100 },
+      spacing: { before: 160, after: 80, line: defaultLineSpacing },
       children: [
         new TextRun({
           text: title,
           font,
-          size: 28, // 14pt
-          bold: true,
-          color: primaryColor
-        })
-      ]
-    });
-  };
-
-  // Helper for Subsection Heading
-  const subSectionHeading = (title: string) => {
-    return new Paragraph({
-      heading: HeadingLevel.HEADING_2,
-      spacing: { before: 120, after: 60 },
-      children: [
-        new TextRun({
-          text: title,
-          font,
-          size: 26, // 13pt
-          bold: true,
-          color: "111827"
-        })
-      ]
-    });
-  };
-
-  const docChildren: (Paragraph | Table)[] = [];
-
-  // 1. Top Header Table (School, Dept, Teacher, Date)
-  const headerTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: {
-      top: { style: BorderStyle.NONE },
-      bottom: { style: BorderStyle.NONE },
-      left: { style: BorderStyle.NONE },
-      right: { style: BorderStyle.NONE },
-      insideHorizontal: { style: BorderStyle.NONE },
-      insideVertical: { style: BorderStyle.NONE }
-    },
-    rows: [
-      new TableRow({
-        children: [
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            children: [
-              p(plan.header.schoolName || "TRƯỜNG THPT ....................", { bold: true, align: AlignmentType.CENTER }),
-              p(`TỔ CHUYÊN MÔN: ${plan.header.department || "HÓA HỌC"}`, { italic: true, align: AlignmentType.CENTER })
-            ]
-          }),
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            children: [
-              p(`Họ và tên giáo viên: ${plan.header.teacherName || "................................"}`, { align: AlignmentType.LEFT }),
-              p(`Môn học: ${plan.header.subject || "Hóa học"} - Lớp: ${plan.header.grade || "11"}`, { align: AlignmentType.LEFT }),
-              p(`Bộ sách: ${plan.header.textbookSet || "Chương trình GDPT 2018"}`, { italic: true, align: AlignmentType.LEFT })
-            ]
-          })
-        ]
-      })
-    ]
-  });
-
-  docChildren.push(headerTable);
-
-  // Lesson Title Banner
-  docChildren.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 240, after: 60 },
-      children: [
-        new TextRun({
-          text: "KẾ HOẠCH BÀI DẠY",
-          font,
-          size: 32, // 16pt
-          bold: true,
-          color: primaryColor
-        })
-      ]
-    })
-  );
-
-  docChildren.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 40, after: 120 },
-      children: [
-        new TextRun({
-          text: `BÀI: ${plan.header.lessonTitle.toUpperCase()}`,
-          font,
-          size: 28, // 14pt
+          size: 26, // 13pt bold for main section heading
           bold: true,
           color: "000000"
         })
       ]
-    })
-  );
+    });
+  };
 
+  // Helper for Subsection Heading (1. Kiến thức, 2. Năng lực, etc.)
+  const subSectionHeading = (title: string) => {
+    return new Paragraph({
+      heading: HeadingLevel.HEADING_2,
+      spacing: { before: 100, after: 40, line: defaultLineSpacing },
+      children: [
+        new TextRun({
+          text: title,
+          font,
+          size: defaultSize, // 12pt bold
+          bold: true,
+          color: "000000"
+        })
+      ]
+    });
+  };
+
+  const FONT_NAME = "Times New Roman";
+  const FONT_SIZE = 24; // 24 half-point = 12 pt
+  const LINE_SPACING = 288; // 1.2 lines
+
+  const normalSpacing = {
+    line: LINE_SPACING,
+    before: 0,
+    after: 0,
+  };
+
+  const createKHBDMainTitle = (): Paragraph => {
+    return new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: {
+        line: LINE_SPACING,
+        before: 0,
+        after: 120,
+      },
+      children: [
+        new TextRun({
+          text: "KẾ HOẠCH BÀI DẠY MÔN HOÁ HỌC",
+          font: FONT_NAME,
+          size: FONT_SIZE,
+          bold: true,
+        }),
+      ],
+    });
+  };
+
+  const createInfoParagraph = (
+    label: string,
+    value: string
+  ): Paragraph => {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: normalSpacing,
+      children: [
+        new TextRun({
+          text: label,
+          font: FONT_NAME,
+          size: FONT_SIZE,
+          bold: true,
+        }),
+        new TextRun({
+          text: value,
+          font: FONT_NAME,
+          size: FONT_SIZE,
+        }),
+      ],
+    });
+  };
+
+  const valueOrDots = (
+    value: unknown,
+    dots: string
+  ): string => {
+    if (
+      value === undefined ||
+      value === null ||
+      String(value).trim() === ""
+    ) {
+      return dots;
+    }
+    return String(value);
+  };
+
+  const createKHBDHeader = (
+    data: any
+  ): Paragraph[] => {
+    const lessonName = data?.lessonName || data?.lessonTitle;
+    const periods = data?.numberOfPeriods || data?.periods;
+    return [
+      createKHBDMainTitle(),
+      createInfoParagraph(
+        "Tên Bài học/Chủ đề: ",
+        valueOrDots(
+          lessonName,
+          "........................................................................"
+        )
+      ),
+      createInfoParagraph(
+        "Loại hình tổ chức: ",
+        valueOrDots(
+          data?.organizationType,
+          "......................................................................"
+        )
+      ),
+      createInfoParagraph(
+        "Lớp: ",
+        valueOrDots(
+          data?.grade,
+          "..............."
+        )
+      ),
+      createInfoParagraph(
+        "Thời gian thực hiện: ",
+        periods
+          ? `${periods} tiết`
+          : ".......... tiết"
+      ),
+    ];
+  };
+
+  const docChildren: (Paragraph | Table)[] = [];
+
+  // 1. KẾ HOẠCH BÀI DẠY MÔN HOÁ HỌC Header (Standardised according to official format)
+  docChildren.push(...createKHBDHeader(plan.header));
+
+  // Spacing before Section I
   docChildren.push(
-    p(
-      `Thời lượng: ${plan.header.numberOfPeriods} tiết (${plan.header.numberOfPeriods * (plan.header.periodDuration || 45)} phút) - Đối tượng: ${plan.header.targetAudience || "Học sinh THPT"}`,
-      { italic: true, align: AlignmentType.CENTER, spaceAfter: 160 }
-    )
+    new Paragraph({
+      spacing: { before: 80, after: 0, line: defaultLineSpacing },
+      children: []
+    })
   );
 
   // SECTION I: MỤC TIÊU
@@ -208,35 +496,35 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   docChildren.push(subSectionHeading("1. Kiến thức:"));
   if (plan.objectives.knowledge && plan.objectives.knowledge.length > 0) {
     plan.objectives.knowledge.forEach((k) => {
-      docChildren.push(p(`- ${k}`, { spaceBefore: 40, spaceAfter: 40 }));
+      docChildren.push(createDashParagraph(k));
     });
   } else {
-    docChildren.push(p("- Học sinh nắm vững các kiến thức trọng tâm của bài học."));
+    docChildren.push(createDashParagraph("Học sinh nắm vững các kiến thức trọng tâm của bài học."));
   }
 
   // 2. Năng lực
   docChildren.push(subSectionHeading("2. Năng lực:"));
 
   // a) Năng lực chung
-  docChildren.push(pMixed([{ text: "a) Năng lực chung:", bold: true }]));
+  docChildren.push(p("a) Năng lực chung:", { bold: true }));
   plan.objectives.competencies.generalCompetencies.forEach((gc) => {
-    docChildren.push(
-      pMixed([
-        { text: `- ${gc.name} (${gc.code}): `, bold: true },
-        { text: gc.specificBehaviors.join("; ") }
-      ])
-    );
+    const cleanBehaviors = gc.specificBehaviors
+      .map((b) => removeLegacyCompetencyCode(b))
+      .filter(Boolean)
+      .join("; ");
+    docChildren.push(createGeneralCompetencyParagraph(gc.name, cleanBehaviors));
   });
 
   // b) Năng lực hóa học
-  docChildren.push(pMixed([{ text: "b) Năng lực hóa học (theo CT GDPT 2018):", bold: true }]));
+  docChildren.push(p("b) Năng lực hóa học (theo CT GDPT 2018):", { bold: true }));
   plan.objectives.competencies.chemistryCompetencies.forEach((cc) => {
-    docChildren.push(
-      pMixed([
-        { text: `- ${cc.name} (${cc.component}): `, bold: true },
-        { text: `${cc.description} Biểu hiện cụ thể: ${cc.specificBehaviors.join("; ")}` }
-      ])
-    );
+    const cleanDesc = removeLegacyCompetencyCode(cc.description);
+    const cleanBehaviors = cc.specificBehaviors
+      .map((b) => removeLegacyCompetencyCode(b))
+      .filter(Boolean)
+      .join("; ");
+    const fullDesc = cleanDesc && cleanBehaviors ? `${cleanDesc} (Biểu hiện: ${cleanBehaviors})` : cleanDesc || cleanBehaviors;
+    docChildren.push(createGeneralCompetencyParagraph(cc.name, fullDesc));
   });
 
   // c) Năng lực số (nếu có)
@@ -244,14 +532,10 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     plan.objectives.competencies.digitalCompetencies &&
     plan.objectives.competencies.digitalCompetencies.length > 0
   ) {
-    docChildren.push(pMixed([{ text: "c) Năng lực số (NLS):", bold: true }]));
+    docChildren.push(p("c) Năng lực số (lồng ghép nếu có):", { bold: true }));
     plan.objectives.competencies.digitalCompetencies.forEach((dc) => {
-      docChildren.push(
-        pMixed([
-          { text: `- Mã ${dc.code} - ${dc.name}: `, bold: true },
-          { text: dc.evidence }
-        ])
-      );
+      const desc = dc.evidence || dc.name;
+      docChildren.push(createDigitalCompetencyParagraph(dc.code, desc));
     });
   }
 
@@ -261,15 +545,11 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     plan.objectives.competencies.aiCompetencies.length > 0
   ) {
     docChildren.push(
-      pMixed([{ text: "d) Năng lực Trí tuệ nhân tạo (AI theo QĐ 2422/QĐ-BGDĐT):", bold: true }])
+      p("d) Năng lực AI (theo QĐ 2422/QĐ-BGDĐT):", { bold: true })
     );
     plan.objectives.competencies.aiCompetencies.forEach((ai) => {
-      docChildren.push(
-        pMixed([
-          { text: `- Mã ${ai.code} - ${ai.name}: `, bold: true },
-          { text: ai.evidence }
-        ])
-      );
+      const desc = ai.evidence || ai.name;
+      docChildren.push(createAICompetencyParagraph(ai.code, desc));
     });
   }
 
@@ -278,69 +558,62 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     plan.objectives.competencies.englishCompetencies &&
     plan.objectives.competencies.englishCompetencies.length > 0
   ) {
-    docChildren.push(pMixed([{ text: "e) Năng lực tiếng Anh / Danh pháp quốc tế IUPAC:", bold: true }]));
+    docChildren.push(p("e) Năng lực tiếng Anh / Danh pháp quốc tế IUPAC:", { bold: true }));
     plan.objectives.competencies.englishCompetencies.forEach((eng) => {
-      docChildren.push(
-        pMixed([
-          { text: `- ${eng.aspect}: `, bold: true },
-          { text: `${eng.evidence} (Thuật ngữ: ${eng.terminology.join(", ")})` }
-        ])
-      );
+      const aspect = removeLegacyCompetencyCode(eng.aspect);
+      const evidence = removeLegacyCompetencyCode(eng.evidence);
+      const terms = eng.terminology?.length ? ` (Thuật ngữ: ${eng.terminology.join(", ")})` : "";
+      docChildren.push(createGeneralCompetencyParagraph(aspect, `${evidence}${terms}`));
     });
   }
 
   // 3. Phẩm chất
   docChildren.push(subSectionHeading("3. Phẩm chất:"));
   plan.objectives.qualities.forEach((q) => {
-    docChildren.push(
-      pMixed([
-        { text: `- ${q.name}: `, bold: true },
-        { text: q.evidence }
-      ])
-    );
+    docChildren.push(createGeneralCompetencyParagraph(q.name, q.evidence));
   });
 
   // SECTION II: THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
   docChildren.push(sectionHeading("II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU"));
   docChildren.push(
     pMixed([
-      { text: "1. Giáo viên: ", bold: true },
-      { text: plan.equipmentAndMaterials.teacher.join("; ") }
+      { text: "- Giáo viên: ", bold: true },
+      { text: removeLegacyCompetencyCode(plan.equipmentAndMaterials.teacher.join("; ")) }
     ])
   );
   docChildren.push(
     pMixed([
-      { text: "2. Học sinh: ", bold: true },
-      { text: plan.equipmentAndMaterials.students.join("; ") }
+      { text: "- Học sinh: ", bold: true },
+      { text: removeLegacyCompetencyCode(plan.equipmentAndMaterials.students.join("; ")) }
     ])
   );
 
-  // SECTION III: TIẾN TRÌNH DẠY HỌC
-  docChildren.push(sectionHeading("III. TIẾN TRÌNG DẠY HỌC"));
+  // SECTION IV: TIẾN TRÌNG DẠY HỌC
+  docChildren.push(sectionHeading("IV. TIẾN TRÌNG DẠY HỌC"));
 
   // Build each activity
   plan.learningActivities.forEach((activity: LearningActivity) => {
     docChildren.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
-        spacing: { before: 180, after: 60 },
+        spacing: { before: 140, after: 40, line: defaultLineSpacing },
         children: [
           new TextRun({
             text: `${activity.typeLabel || activity.title} (${activity.durationMinutes} phút - Tiết ${activity.period})`,
             font,
-            size: 26,
+            size: defaultSize, // 12pt bold
             bold: true,
-            color: "0F172A"
+            color: "000000"
           })
         ]
       })
     );
 
-    if (activity.bigQuestion) {
+    if (activity.bigQuestion && cleanBigQuestion(activity.bigQuestion)) {
       docChildren.push(
         pMixed([
-          { text: "★ Câu hỏi lớn / Vấn đề cốt lõi: ", bold: true, color: "B45309" },
-          { text: activity.bigQuestion, italic: true }
+          { text: "Câu hỏi lớn: ", bold: true },
+          { text: cleanBigQuestion(activity.bigQuestion), italic: true }
         ])
       );
     }
@@ -348,86 +621,109 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     docChildren.push(
       pMixed([
         { text: "a) Mục tiêu: ", bold: true },
-        { text: activity.objective }
+        { text: removeLegacyCompetencyCode(activity.objective) }
       ])
     );
 
     docChildren.push(
       pMixed([
         { text: "b) Nội dung: ", bold: true },
-        { text: activity.content }
+        { text: removeLegacyCompetencyCode(activity.content) }
       ])
     );
 
     docChildren.push(
       pMixed([
         { text: "c) Sản phẩm: ", bold: true },
-        { text: activity.product }
+        { text: removeLegacyCompetencyCode(activity.product) }
       ])
     );
 
     docChildren.push(
       pMixed([
-        { text: "d) Tổ chức thực hiện:", bold: true, spaceAfter: 60 }
+        { text: "d) Tổ chức thực hiện:", bold: true, spaceAfter: 40 }
       ])
     );
 
-    // 2-Column Organization Table for Teacher and Student activities
+    // 3-Column Organization Table for Teacher, Student and Board Content (36% / 36% / 28%)
     const tableRows: TableRow[] = [];
 
-    // Header row
+    // Header row with white fill, black bold text, black borders
     tableRows.push(
       new TableRow({
         tableHeader: true,
         children: [
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            shading: { type: ShadingType.CLEAR, fill: "E2E8F0" },
-            children: [p("HOẠT ĐỘNG CỦA GIÁO VIÊN", { bold: true, align: AlignmentType.CENTER })]
-          }),
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            shading: { type: ShadingType.CLEAR, fill: "E2E8F0" },
-            children: [p("HOẠT ĐỘNG CỦA HỌC SINH", { bold: true, align: AlignmentType.CENTER })]
-          })
+          createHeaderCell("HOẠT ĐỘNG CỦA GV", 36),
+          createHeaderCell("HOẠT ĐỘNG CỦA HS", 36),
+          createHeaderCell("NỘI DUNG GHI BẢNG", 28)
         ]
       })
     );
 
-    const teacherPhases = activity.organization.teacherActivities || [];
-    const studentPhases = activity.organization.studentActivities || [];
-    const maxPhases = Math.max(teacherPhases.length, studentPhases.length);
+    // Normalize organization phases
+    interface DocxPhase {
+      phase: string;
+      teacher: string[];
+      student: string[];
+      boardContent: string[];
+    }
 
-    for (let i = 0; i < maxPhases; i++) {
-      const tPhase = teacherPhases[i] || { phase: "", details: "" };
-      const sPhase = studentPhases[i] || { phase: "", details: "" };
+    let phasesList: DocxPhase[] = [];
+    if (Array.isArray(activity.organization)) {
+      phasesList = activity.organization.map((p) => ({
+        phase: p.phase || "",
+        teacher: Array.isArray(p.teacher) ? p.teacher : p.teacher ? [p.teacher] : [],
+        student: Array.isArray(p.student) ? p.student : p.student ? [p.student] : [],
+        boardContent: Array.isArray(p.boardContent) ? p.boardContent : p.boardContent ? [p.boardContent] : []
+      }));
+    } else if (activity.organization && (activity.organization as any).teacherActivities) {
+      const legacyOrg = activity.organization as any;
+      const maxP = Math.max(legacyOrg.teacherActivities?.length || 0, legacyOrg.studentActivities?.length || 0);
+      for (let i = 0; i < maxP; i++) {
+        const t = legacyOrg.teacherActivities?.[i] || {};
+        const s = legacyOrg.studentActivities?.[i] || {};
+        phasesList.push({
+          phase: t.phase || s.phase || `Pha ${i + 1}`,
+          teacher: t.details ? [t.details] : [],
+          student: s.details ? [s.details] : [],
+          boardContent: []
+        });
+      }
+    }
 
-      const tCellChildren: Paragraph[] = [];
-      if (tPhase.phase) {
-        tCellChildren.push(pMixed([{ text: `• ${tPhase.phase}:`, bold: true }]));
-      }
-      if (tPhase.details) {
-        tCellChildren.push(p(tPhase.details));
-      }
-
-      const sCellChildren: Paragraph[] = [];
-      if (sPhase.phase) {
-        sCellChildren.push(pMixed([{ text: `• ${sPhase.phase}:`, bold: true }]));
-      }
-      if (sPhase.details) {
-        sCellChildren.push(p(sPhase.details));
-      }
-
+    for (const phaseItem of phasesList) {
       tableRows.push(
         new TableRow({
           children: [
             new TableCell({
-              width: { size: 50, type: WidthType.PERCENTAGE },
-              children: tCellChildren.length > 0 ? tCellChildren : [p("")]
+              width: { size: 36, type: WidthType.PERCENTAGE },
+              borders: {
+                top: TABLE_BORDER,
+                bottom: TABLE_BORDER,
+                left: TABLE_BORDER,
+                right: TABLE_BORDER
+              },
+              children: createTeacherCellParagraphs(phaseItem.phase, phaseItem.teacher)
             }),
             new TableCell({
-              width: { size: 50, type: WidthType.PERCENTAGE },
-              children: sCellChildren.length > 0 ? sCellChildren : [p("")]
+              width: { size: 36, type: WidthType.PERCENTAGE },
+              borders: {
+                top: TABLE_BORDER,
+                bottom: TABLE_BORDER,
+                left: TABLE_BORDER,
+                right: TABLE_BORDER
+              },
+              children: createPlainCellParagraphs(phaseItem.student)
+            }),
+            new TableCell({
+              width: { size: 28, type: WidthType.PERCENTAGE },
+              borders: {
+                top: TABLE_BORDER,
+                bottom: TABLE_BORDER,
+                left: TABLE_BORDER,
+                right: TABLE_BORDER
+              },
+              children: createPlainCellParagraphs(phaseItem.boardContent)
             })
           ]
         })
@@ -436,32 +732,16 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
 
     const activityTable = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: {
-        top: { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" },
-        bottom: { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" },
-        left: { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" },
-        right: { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" },
-        insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" },
-        insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" }
-      },
+      borders: TABLE_BORDERS,
       rows: tableRows
     });
 
     docChildren.push(activityTable);
-
-    if (activity.assessment) {
-      docChildren.push(
-        pMixed([
-          { text: "e) Đánh giá: ", bold: true, italic: true },
-          { text: `Phương pháp: ${activity.assessment.method} - Tiêu chí: ${activity.assessment.criteria}` }
-        ], { spaceBefore: 60, spaceAfter: 120 })
-      );
-    }
   });
 
-  // SECTION IV: PHỤ LỤC
-  if (plan.appendices && (plan.appendices.worksheets?.length || plan.appendices.rubrics?.length)) {
-    docChildren.push(sectionHeading("IV. PHỤ LỤC"));
+  // SECTION V: PHỤ LỤC
+  if (plan.appendices && (plan.appendices.worksheets?.length || plan.appendices.rubrics?.length || plan.appendices.safetyNotes?.length)) {
+    docChildren.push(sectionHeading("V. PHỤ LỤC"));
 
     // Worksheets
     if (plan.appendices.worksheets && plan.appendices.worksheets.length > 0) {
@@ -470,23 +750,23 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
         docChildren.push(
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 120, after: 60 },
+            spacing: { before: 100, after: 40, line: defaultLineSpacing },
             children: [
               new TextRun({
                 text: `${ws.title || `PHIẾU HỌC TẬP SỐ ${idx + 1}`}`,
                 font,
-                size: 26,
+                size: defaultSize, // 12pt bold
                 bold: true
               })
             ]
           })
         );
-        docChildren.push(p(ws.content));
+        docChildren.push(p(removeLegacyCompetencyCode(ws.content)));
         if (ws.keyAnswer) {
           docChildren.push(
             pMixed([
               { text: "Hướng dẫn giải / Đáp án: ", bold: true, italic: true },
-              { text: ws.keyAnswer }
+              { text: removeLegacyCompetencyCode(ws.keyAnswer) }
             ])
           );
         }
@@ -497,12 +777,12 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     if (plan.appendices.rubrics && plan.appendices.rubrics.length > 0) {
       docChildren.push(subSectionHeading("2. Bảng kiểm đánh giá (Rubrics):"));
       plan.appendices.rubrics.forEach((rubric) => {
-        docChildren.push(p(rubric.title, { bold: true }));
+        docChildren.push(p(removeLegacyCompetencyCode(rubric.title), { bold: true }));
         rubric.criteria.forEach((crit) => {
           docChildren.push(
             pMixed([
-              { text: `- Tiêu chí: ${crit.name}: `, bold: true },
-              { text: crit.levels.join(" | ") }
+              { text: `- Tiêu chí: ${removeLegacyCompetencyCode(crit.name)}: `, bold: true },
+              { text: removeLegacyCompetencyCode(crit.levels.join(" | ")) }
             ])
           );
         });
@@ -513,22 +793,26 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     if (plan.appendices.safetyNotes && plan.appendices.safetyNotes.length > 0) {
       docChildren.push(subSectionHeading("3. Lưu ý an toàn thí nghiệm / Hóa chất:"));
       plan.appendices.safetyNotes.forEach((note) => {
-        docChildren.push(p(`⚠ ${note}`, { color: "B91C1C" }));
+        docChildren.push(createDashParagraph(note));
       });
     }
   }
 
-  // Create docx Document with A4 setup and margins (top 20mm, bottom 20mm, left 25mm, right 20mm)
+  // Create docx Document with A4 setup and margins:
+  // Top: 1.5 cm = 851 twips
+  // Bottom: 1.5 cm = 851 twips
+  // Left: 2.0 cm = 1134 twips
+  // Right: 1.0 cm = 567 twips
   const doc = new Document({
     sections: [
       {
         properties: {
           page: {
             margin: {
-              top: 1134, // ~20mm in twips (1mm ≈ 56.7 twips)
-              bottom: 1134,
-              left: 1417, // ~25mm
-              right: 1134
+              top: 851,    // 1.5 cm
+              bottom: 851, // 1.5 cm
+              left: 1134,  // 2.0 cm
+              right: 567   // 1.0 cm
             }
           }
         },
@@ -537,6 +821,7 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
             children: [
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
+                spacing: { line: defaultLineSpacing },
                 children: [
                   new TextRun({
                     text: `KHBD: ${plan.header.lessonTitle} - Môn Hóa học`,
@@ -555,26 +840,27 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
+                spacing: { line: defaultLineSpacing },
                 children: [
                   new TextRun({
                     text: "Trang ",
                     font,
-                    size: 20
+                    size: defaultSize
                   }),
                   new TextRun({
                     children: [PageNumber.CURRENT],
                     font,
-                    size: 20
+                    size: defaultSize
                   }),
                   new TextRun({
                     text: " / ",
                     font,
-                    size: 20
+                    size: defaultSize
                   }),
                   new TextRun({
                     children: [PageNumber.TOTAL_PAGES],
                     font,
-                    size: 20
+                    size: defaultSize
                   })
                 ]
               })

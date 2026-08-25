@@ -11,6 +11,63 @@
   font-family: "Times New Roman", Times, serif;
 }
 
+.khbd-document-header {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 1.2;
+  color: #000;
+  margin-bottom: 12px;
+}
+
+.khbd-document-header p {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  text-align: left;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+}
+
+.khbd-main-title {
+  margin: 0 0 8px 0;
+  padding: 0;
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #000;
+}
+
+.khbd-table,
+.org-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #000;
+}
+
+.khbd-table th,
+.khbd-table td,
+.org-table th,
+.org-table td {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  vertical-align: top;
+  background: #fff;
+}
+
+.khbd-table th,
+.org-table th {
+  font-weight: 700;
+  text-align: center;
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.org-table td {
+  text-align: justify;
+}
+
 @media print {
   body {
     background: white !important;

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Sparkles,
   Upload,
@@ -21,6 +21,12 @@ import type { GenerateSettings, LessonPlan } from "../types";
 import { SAMPLE_LESSON_PLAN_EQUILIBRIUM } from "./SampleLessonPlans";
 
 interface KHBDFormProps {
+  settings?: GenerateSettings;
+  setSettings?: React.Dispatch<React.SetStateAction<GenerateSettings>>;
+  files?: File[];
+  setFiles?: React.Dispatch<React.SetStateAction<File[]>>;
+  errorMessage?: string | null;
+  setErrorMessage?: (msg: string | null) => void;
   onGenerateSuccess: (plan: LessonPlan) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
@@ -28,13 +34,21 @@ interface KHBDFormProps {
 }
 
 export const KHBDForm: React.FC<KHBDFormProps> = ({
+  settings: externalSettings,
+  setSettings: setExternalSettings,
+  files: externalFiles,
+  setFiles: setExternalFiles,
+  errorMessage: externalErrorMessage,
+  setErrorMessage: setExternalErrorMessage,
   onGenerateSuccess,
   isLoading,
   setIsLoading,
   onSelectSample
 }) => {
-  const [settings, setSettings] = useState<GenerateSettings>({
+  const [internalSettings, setInternalSettings] = useState<GenerateSettings>({
     lessonTitle: "Cân bằng hóa học",
+    lessonName: "Cân bằng hóa học",
+    organizationType: "Dạy học trên lớp",
     grade: "11",
     textbookSet: "Cánh Diều",
     numberOfPeriods: 2,
@@ -46,14 +60,29 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
     enableDigitalCompetency: true,
     enableAICompetency: true,
     enableEnglishCompetency: true,
-    model: "gemini-3.7-flash",
+    model: "gemini-3.6-flash",
     specialRequests: ""
   });
 
-  const [files, setFiles] = useState<File[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [internalFiles, setInternalFiles] = useState<File[]>([]);
+  const [internalError, setInternalError] = useState<string | null>(null);
+
+  const settings = externalSettings || internalSettings;
+  const setSettings = setExternalSettings || setInternalSettings;
+  const files = externalFiles || internalFiles;
+  const setFiles = setExternalFiles || setInternalFiles;
+  const errorMessage = externalErrorMessage !== undefined ? externalErrorMessage : internalError;
+  const setErrorMessage = setExternalErrorMessage || setInternalError;
+
   const [loadingStep, setLoadingStep] = useState<number>(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // When files array becomes empty, reset file input value
+  useEffect(() => {
+    if (files.length === 0 && fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [files.length]);
 
   const samplePresets = [
     {
@@ -97,6 +126,18 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
     }));
   };
 
+  const MAX_FILE_SIZE = 45 * 1024 * 1024; // 45 MB
+
+  const validateFiles = (newFiles: File[]): boolean => {
+    for (const file of newFiles) {
+      if (file.size > MAX_FILE_SIZE) {
+        setErrorMessage(`Tệp "${file.name}" vượt quá dung lượng tối đa cho phép (45 MB).`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
@@ -104,6 +145,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
         setErrorMessage("Bạn chỉ được tải lên tối đa 8 tệp tài liệu cùng lúc.");
         return;
       }
+      if (!validateFiles(selectedFiles)) return;
       setFiles((prev) => [...prev, ...selectedFiles].slice(0, 8));
       setErrorMessage(null);
     }
@@ -121,6 +163,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
         setErrorMessage("Bạn chỉ được tải lên tối đa 8 tệp tài liệu cùng lúc.");
         return;
       }
+      if (!validateFiles(droppedFiles)) return;
       setFiles((prev) => [...prev, ...droppedFiles].slice(0, 8));
       setErrorMessage(null);
     }
@@ -156,21 +199,38 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
         body: formData
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      const rawText = await response.text();
       clearInterval(stepInterval);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Không thể tạo Kế hoạch bài dạy. Vui lòng kiểm tra lại cấu hình.");
+      // Check if server returned HTML instead of JSON
+      if (
+        contentType.includes("text/html") ||
+        rawText.trim().toLowerCase().startsWith("<!doctype") ||
+        rawText.trim().toLowerCase().startsWith("<html")
+      ) {
+        throw new Error("Không kết nối được API backend /api/generate hoặc máy chủ phản hồi trang web thay vì dữ liệu JSON.");
       }
 
-      if (data.success && data.lessonPlan) {
+      let data: any;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error("Dữ liệu phản hồi từ máy chủ không đúng định dạng JSON: " + rawText.slice(0, 120));
+      }
+
+      if (!response.ok || data.ok === false || data.success === false) {
+        throw new Error(data.error || "Không thể tạo Kế hoạch bài dạy. Vui lòng kiểm tra lại cấu hình hoặc API Key.");
+      }
+
+      if (data.lessonPlan) {
         onGenerateSuccess(data.lessonPlan);
       } else {
-        throw new Error("Dữ liệu phản hồi từ máy chủ không đúng định dạng.");
+        throw new Error("Dữ liệu phản hồi từ máy chủ không chứa cấu trúc Kế hoạch bài dạy hợp lệ.");
       }
     } catch (err: any) {
       clearInterval(stepInterval);
-      console.error("Lỗi:", err);
+      console.error("Lỗi khi soạn KHBD:", err);
       setErrorMessage(err.message || "Đã xảy ra lỗi trong quá trình tạo Kế hoạch bài dạy.");
     } finally {
       setIsLoading(false);
@@ -256,16 +316,32 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
             {/* Lesson Title */}
             <div className="md:col-span-6 space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
-                Tên bài dạy <span className="text-rose-500">*</span>
+                Tên bài dạy / Chủ đề <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={settings.lessonTitle}
-                onChange={(e) => setSettings({ ...settings, lessonTitle: e.target.value })}
-                placeholder="VD: Cân bằng hóa học, Alkane, Năng lượng hóa học..."
+                onChange={(e) => setSettings({ ...settings, lessonTitle: e.target.value, lessonName: e.target.value })}
+                placeholder="VD: Ester – Lipid, Cân bằng hóa học, Alkane..."
                 className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
                 required
               />
+            </div>
+
+            {/* Organization Type */}
+            <div className="md:col-span-6 space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">Loại hình tổ chức</label>
+              <select
+                value={settings.organizationType || "Dạy học trên lớp"}
+                onChange={(e) => setSettings({ ...settings, organizationType: e.target.value })}
+                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              >
+                <option value="Dạy học trên lớp">Dạy học trên lớp</option>
+                <option value="Dạy học trực tuyến">Dạy học trực tuyến</option>
+                <option value="Dạy học kết hợp">Dạy học kết hợp</option>
+                <option value="Hoạt động trải nghiệm">Hoạt động trải nghiệm</option>
+                <option value="Khác">Khác</option>
+              </select>
             </div>
 
             {/* Grade */}
@@ -284,7 +360,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
 
             {/* Periods */}
             <div className="md:col-span-3 space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">Thời lượng (Số tiết)</label>
+              <label className="block text-xs font-bold text-slate-700">Thời gian thực hiện (Số tiết)</label>
               <select
                 value={settings.numberOfPeriods}
                 onChange={(e) => setSettings({ ...settings, numberOfPeriods: Number(e.target.value) })}
@@ -299,7 +375,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
             </div>
 
             {/* Textbook Set */}
-            <div className="md:col-span-4 space-y-1.5">
+            <div className="md:col-span-6 space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">Bộ sách giáo khoa</label>
               <select
                 value={settings.textbookSet}
@@ -316,7 +392,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
             </div>
 
             {/* Target Audience */}
-            <div className="md:col-span-8 space-y-1.5">
+            <div className="md:col-span-12 space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">Đối tượng học sinh</label>
               <input
                 type="text"
@@ -473,7 +549,7 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-slate-900 text-base">Tài liệu nguồn tham khảo (Tùy chọn)</h3>
-                <p className="text-xs text-slate-500">Tải lên tối đa 8 file (PDF, DOCX, TXT, MD, CSV, PNG, JPG, WEBP - tối đa 20MB/file)</p>
+                <p className="text-xs text-slate-500">Tải lên tối đa 8 file (PDF, DOCX, TXT, MD, CSV, PNG, JPG, WEBP - tối đa 45MB/file)</p>
               </div>
             </div>
             <span className="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
@@ -556,8 +632,10 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
                 onChange={(e) => setSettings({ ...settings, model: e.target.value })}
                 className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
-                <option value="gemini-3.7-flash">gemini-3.7-flash (Mặc định - Nhanh & Chuẩn xác)</option>
-                <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Suy luận sư phạm nâng cao)</option>
+                <option value="gemini-3.6-flash">gemini-3.6-flash (Khuyên dùng - Nhanh & Ổn định)</option>
+                <option value="gemini-3.7-flash">gemini-3.7-flash (Mô hình Mới - Nâng cao)</option>
+                <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (Flash Lite - Phản hồi cực nhanh)</option>
+                <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Suy luận sư phạm chuyên sâu)</option>
               </select>
             </div>
 

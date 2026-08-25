@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Download,
   Printer,
@@ -17,21 +17,100 @@ import {
   ChevronUp,
   Save,
   Plus,
-  Trash2
+  Trash2,
+  RotateCcw,
+  ArrowLeft
 } from "lucide-react";
-import type { LessonPlan, LearningActivity, Worksheet } from "../types";
+import type { LessonPlan, LearningActivity, Worksheet, OrganizationPhase } from "../types";
 import { exportLessonPlanToDocx } from "../utils/docxExport";
+import {
+  formatAICode,
+  formatDigitalCompetencyCode,
+  removeLegacyCompetencyCode,
+  removePhasePrefix,
+  cleanBigQuestion,
+  displayOrDots
+} from "../utils/competencyHelper";
+
+interface TextListProps {
+  items?: string[];
+  useDash?: boolean;
+}
+
+function TextList({ items = [], useDash = false }: TextListProps) {
+  if (!Array.isArray(items)) return null;
+
+  return (
+    <div className="space-y-1">
+      {items
+        .filter(Boolean)
+        .map((item, index) => {
+          const clean = removeLegacyCompetencyCode(item);
+          return (
+            <p
+              key={index}
+              style={{
+                margin: 0,
+                padding: 0,
+                lineHeight: 1.25
+              }}
+              className="text-xs text-slate-900"
+            >
+              {useDash ? "- " : ""}
+              {clean}
+            </p>
+          );
+        })}
+    </div>
+  );
+}
+
+interface NormalizedPhase {
+  phase: string;
+  teacher: string[];
+  student: string[];
+  boardContent: string[];
+}
+
+function normalizePhases(org: any): NormalizedPhase[] {
+  if (Array.isArray(org)) {
+    return org.map((p) => ({
+      phase: p.phase || "",
+      teacher: Array.isArray(p.teacher) ? p.teacher : p.teacher ? [p.teacher] : [],
+      student: Array.isArray(p.student) ? p.student : p.student ? [p.student] : [],
+      boardContent: Array.isArray(p.boardContent) ? p.boardContent : p.boardContent ? [p.boardContent] : []
+    }));
+  }
+  if (org && Array.isArray(org.teacherActivities) && Array.isArray(org.studentActivities)) {
+    const maxLen = Math.max(org.teacherActivities.length, org.studentActivities.length);
+    const result: NormalizedPhase[] = [];
+    for (let i = 0; i < maxLen; i++) {
+      const t = org.teacherActivities[i] || {};
+      const s = org.studentActivities[i] || {};
+      result.push({
+        phase: t.phase || s.phase || `Pha ${i + 1}`,
+        teacher: t.details ? [t.details] : [],
+        student: s.details ? [s.details] : [],
+        boardContent: []
+      });
+    }
+    return result;
+  }
+  return [];
+}
 
 interface KHBDViewerProps {
   plan: LessonPlan;
   onUpdatePlan: (updatedPlan: LessonPlan) => void;
   onBackToForm: () => void;
+  onNewLesson?: () => void;
 }
 
 export const KHBDViewer: React.FC<KHBDViewerProps> = ({
   plan,
   onUpdatePlan,
-  onBackToForm
+  onBackToForm,
+  onNewLesson
 }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedPlan, setEditedPlan] = useState<LessonPlan>(plan);
@@ -40,7 +119,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
   const [isExporting, setIsExporting] = useState(false);
 
   // Sync editedPlan when plan prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setEditedPlan(plan);
   }, [plan]);
 
@@ -58,70 +137,94 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
 
   const handleCopyMarkdown = () => {
     const p = isEditMode ? editedPlan : plan;
-    let md = `# KẾ HOẠCH BÀI DẠY\n## BÀI: ${p.header.lessonTitle.toUpperCase()}\n`;
-    md += `**Môn học:** ${p.header.subject} - **Lớp:** ${p.header.grade}\n`;
-    md += `**Thời lượng:** ${p.header.numberOfPeriods} tiết - **Bộ sách:** ${p.header.textbookSet}\n\n`;
+    const lessonName = p.header.lessonName || p.header.lessonTitle;
+    const periodsText = p.header.numberOfPeriods ? `${p.header.numberOfPeriods} tiết` : ".......... tiết";
+
+    let md = `KẾ HOẠCH BÀI DẠY MÔN HOÁ HỌC\n\n`;
+    md += `Tên Bài học/Chủ đề: ${displayOrDots(lessonName)}\n`;
+    md += `Loại hình tổ chức: ${displayOrDots(p.header.organizationType, "......................................................................")}\n`;
+    md += `Lớp: ${displayOrDots(p.header.grade, "...............")}\n`;
+    md += `Thời gian thực hiện: ${periodsText}\n\n`;
 
     md += `### I. MỤC TIÊU\n#### 1. Kiến thức\n`;
-    p.objectives.knowledge.forEach((k) => (md += `- ${k}\n`));
+    p.objectives.knowledge.forEach((k) => (md += `- ${removeLegacyCompetencyCode(k)}\n`));
 
     md += `\n#### 2. Năng lực\n`;
     md += `**a) Năng lực chung:**\n`;
     p.objectives.competencies.generalCompetencies.forEach((gc) => {
-      md += `- **${gc.name} (${gc.code}):** ${gc.specificBehaviors.join("; ")}\n`;
+      const cleanName = removeLegacyCompetencyCode(gc.name);
+      const cleanBehaviors = gc.specificBehaviors.map((b) => removeLegacyCompetencyCode(b)).join("; ");
+      md += `- **${cleanName}:** ${cleanBehaviors}\n`;
     });
 
-    md += `**b) Năng lực hóa học:**\n`;
+    md += `\n**b) Năng lực hóa học (theo CT GDPT 2018):**\n`;
     p.objectives.competencies.chemistryCompetencies.forEach((cc) => {
-      md += `- **${cc.name} (${cc.component}):** ${cc.description} (${cc.specificBehaviors.join("; ")})\n`;
+      const cleanName = removeLegacyCompetencyCode(cc.name);
+      const cleanDesc = removeLegacyCompetencyCode(cc.description);
+      const cleanBehaviors = cc.specificBehaviors.map((b) => removeLegacyCompetencyCode(b)).join("; ");
+      const fullDesc = cleanDesc && cleanBehaviors ? `${cleanDesc} (Biểu hiện: ${cleanBehaviors})` : cleanDesc || cleanBehaviors;
+      md += `- **${cleanName}:** ${fullDesc}\n`;
     });
 
     if (p.objectives.competencies.digitalCompetencies?.length) {
-      md += `**c) Năng lực số (NLS):**\n`;
+      md += `\n**c) Năng lực số (lồng ghép nếu có):**\n`;
       p.objectives.competencies.digitalCompetencies.forEach((dc) => {
-        md += `- **Mã ${dc.code} - ${dc.name}:** ${dc.evidence}\n`;
+        const code = formatDigitalCompetencyCode(dc.code);
+        const desc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+        md += `- **${code}:** ${desc}\n`;
       });
     }
 
     if (p.objectives.competencies.aiCompetencies?.length) {
-      md += `**d) Năng lực AI (QĐ 2422/QĐ-BGDĐT):**\n`;
+      md += `\n**d) Năng lực AI (theo QĐ 2422/QĐ-BGDĐT):**\n`;
       p.objectives.competencies.aiCompetencies.forEach((ai) => {
-        md += `- **Mã ${ai.code} - ${ai.name}:** ${ai.evidence}\n`;
+        const code = formatAICode(ai.code);
+        const desc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+        md += `- **${code}:** ${desc}\n`;
+      });
+    }
+
+    if (p.objectives.competencies.englishCompetencies?.length) {
+      md += `\n**e) Năng lực tiếng Anh / Danh pháp quốc tế IUPAC:**\n`;
+      p.objectives.competencies.englishCompetencies.forEach((eng) => {
+        const aspect = removeLegacyCompetencyCode(eng.aspect);
+        const evidence = removeLegacyCompetencyCode(eng.evidence);
+        const terms = eng.terminology?.length ? ` (Thuật ngữ: ${eng.terminology.join(", ")})` : "";
+        md += `- **${aspect}:** ${evidence}${terms}\n`;
       });
     }
 
     md += `\n#### 3. Phẩm chất\n`;
     p.objectives.qualities.forEach((q) => {
-      md += `- **${q.name}:** ${q.evidence}\n`;
+      md += `- **${removeLegacyCompetencyCode(q.name)}:** ${removeLegacyCompetencyCode(q.evidence)}\n`;
     });
 
     md += `\n### II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU\n`;
-    md += `- **Giáo viên:** ${p.equipmentAndMaterials.teacher.join("; ")}\n`;
-    md += `- **Học sinh:** ${p.equipmentAndMaterials.students.join("; ")}\n\n`;
+    md += `- **Giáo viên:** ${p.equipmentAndMaterials.teacher.map(t => removeLegacyCompetencyCode(t)).join("; ")}\n`;
+    md += `- **Học sinh:** ${p.equipmentAndMaterials.students.map(s => removeLegacyCompetencyCode(s)).join("; ")}\n\n`;
 
-    md += `### III. TIẾN TRÌNG DẠY HỌC\n`;
+    md += `### IV. TIẾN TRÌNG DẠY HỌC\n`;
     p.learningActivities.forEach((act) => {
       md += `\n#### ${act.typeLabel || act.title} (${act.durationMinutes} phút - Tiết ${act.period})\n`;
-      if (act.bigQuestion) md += `*Câu hỏi lớn:* ${act.bigQuestion}\n`;
+      if (act.bigQuestion && cleanBigQuestion(act.bigQuestion)) {
+        md += `- **Câu hỏi lớn:** ${cleanBigQuestion(act.bigQuestion)}\n`;
+      }
       md += `- **a) Mục tiêu:** ${act.objective}\n`;
       md += `- **b) Nội dung:** ${act.content}\n`;
       md += `- **c) Sản phẩm:** ${act.product}\n`;
       md += `- **d) Tổ chức thực hiện:**\n\n`;
-      md += `| Hoạt động của Giáo viên | Hoạt động của Học sinh |\n|---|---|\n`;
-      const maxPhases = Math.max(
-        act.organization.teacherActivities.length,
-        act.organization.studentActivities.length
-      );
-      for (let i = 0; i < maxPhases; i++) {
-        const t = act.organization.teacherActivities[i] || { phase: "", details: "" };
-        const s = act.organization.studentActivities[i] || { phase: "", details: "" };
-        md += `| **${t.phase}**: ${t.details.replace(/\n/g, " ")} | **${s.phase}**: ${s.details.replace(/\n/g, " ")} |\n`;
-      }
-      md += `\n- **e) Đánh giá:** ${act.assessment.method} - ${act.assessment.criteria}\n`;
+      md += `| HOẠT ĐỘNG CỦA GV | HOẠT ĐỘNG CỦA HS | NỘI DUNG GHI BẢNG |\n|---|---|---|\n`;
+      const phases = normalizePhases(act.organization);
+      phases.forEach((phase) => {
+        const tText = `**${phase.phase}:** ` + phase.teacher.map(removeLegacyCompetencyCode).join(" ").replace(/\|/g, "\\|").replace(/\n/g, " ");
+        const sText = phase.student.map(removePhasePrefix).map(removeLegacyCompetencyCode).join(" ").replace(/\|/g, "\\|").replace(/\n/g, " ");
+        const bText = phase.boardContent.map(removePhasePrefix).map(removeLegacyCompetencyCode).join("; ").replace(/\|/g, "\\|").replace(/\n/g, " ");
+        md += `| ${tText} | ${sText} | ${bText} |\n`;
+      });
     });
 
     if (p.appendices.worksheets?.length) {
-      md += `\n### IV. PHỤ LỤC\n`;
+      md += `\n### V. PHỤ LỤC\n`;
       p.appendices.worksheets.forEach((ws) => {
         md += `\n#### ${ws.title}\n${ws.content}\n`;
         if (ws.keyAnswer) md += `*Đáp án/Hướng dẫn:* ${ws.keyAnswer}\n`;
@@ -180,7 +283,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
               activeTab === "activities" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            III. Tiến trình ({plan.learningActivities.length} HĐ)
+            IV. Tiến trình ({plan.learningActivities.length} HĐ)
           </button>
           <button
             onClick={() => setActiveTab("appendices")}
@@ -188,14 +291,37 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
               activeTab === "appendices" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            IV. Phụ lục ({plan.appendices.worksheets?.length || 0} Phiếu HT)
+            V. Phụ lục ({plan.appendices.worksheets?.length || 0} Phiếu HT)
           </button>
         </div>
 
         {/* Right: Export & Editing Tools */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onNewLesson && (
+            <button
+              type="button"
+              onClick={onNewLesson}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg border border-emerald-300 transition-colors shadow-2xs"
+              title="Xóa bài hiện tại và mở form để soạn bài dạy mới"
+            >
+              <RotateCcw className="w-4 h-4 text-emerald-600" />
+              <span>Soạn bài mới</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onBackToForm}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
+            title="Quay lại form nhập liệu để điều chỉnh thông tin bài dạy"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
+            <span className="hidden sm:inline">Quay lại form</span>
+          </button>
+
           {isEditMode ? (
             <button
+              type="button"
               onClick={handleSaveChanges}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
             >
@@ -204,15 +330,17 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => setIsEditMode(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-semibold rounded-lg border border-blue-200 transition-colors"
             >
               <Edit3 className="w-4 h-4 text-blue-600" />
-              <span>Chỉnh sửa bài dạy</span>
+              <span>Chỉnh sửa trực tiếp</span>
             </button>
           )}
 
           <button
+            type="button"
             onClick={handleCopyMarkdown}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
             title="Sao chép nội dung văn bản Markdown"
@@ -222,6 +350,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={handlePrint}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors"
             title="In hoặc Lưu PDF"
@@ -231,6 +360,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={handleExportWord}
             disabled={isExporting}
             className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-98 disabled:opacity-50"
@@ -245,48 +375,53 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
       {/* Main Document Content Area */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-10 document-preview">
         
-        {/* Document Header Table */}
-        <div className="border-b-2 border-slate-900 pb-6 mb-6">
-          <div className="grid grid-cols-2 gap-4 text-xs leading-relaxed">
-            <div className="text-center font-serif">
-              <p className="font-bold uppercase">{plan.header.schoolName || "TRƯỜNG THPT ...................."}</p>
-              <p className="italic">TỔ CHUYÊN MÔN: {plan.header.department || "HÓA HỌC"}</p>
-            </div>
-            <div className="font-serif pl-4 border-l border-slate-200">
-              <p><strong>Họ và tên giáo viên:</strong> {plan.header.teacherName || "................................"}</p>
-              <p><strong>Môn học:</strong> {plan.header.subject} - <strong>Lớp:</strong> {plan.header.grade}</p>
-              <p className="italic"><strong>Bộ sách:</strong> {plan.header.textbookSet}</p>
-            </div>
-          </div>
+        {/* Document Header */}
+        <div className="khbd-document-header pb-4 mb-6 border-b border-slate-200">
+          <h1 className="khbd-main-title">
+            KẾ HOẠCH BÀI DẠY MÔN HOÁ HỌC
+          </h1>
 
-          <div className="text-center mt-6 space-y-1">
-            <h2 className="text-xl font-bold font-serif text-blue-900 tracking-wide">
-              KẾ HOẠCH BÀI DẠY
-            </h2>
-            <h3 className="text-lg font-bold font-serif text-slate-900">
-              BÀI: {plan.header.lessonTitle.toUpperCase()}
-            </h3>
-            <p className="text-xs italic text-slate-600">
-              Thời lượng: {plan.header.numberOfPeriods} tiết ({plan.header.numberOfPeriods * (plan.header.periodDuration || 45)} phút) • Đối tượng: {plan.header.targetAudience}
-            </p>
-          </div>
+          <p>
+            <strong>Tên Bài học/Chủ đề: </strong>
+            {displayOrDots(plan.header.lessonName || plan.header.lessonTitle)}
+          </p>
+
+          <p>
+            <strong>Loại hình tổ chức: </strong>
+            {displayOrDots(plan.header.organizationType, "......................................................................")}
+          </p>
+
+          <p>
+            <strong>Lớp: </strong>
+            {displayOrDots(plan.header.grade, "...............")}
+          </p>
+
+          <p>
+            <strong>Thời gian thực hiện: </strong>
+            {plan.header.numberOfPeriods
+              ? `${plan.header.numberOfPeriods} tiết`
+              : ".......... tiết"}
+          </p>
         </div>
 
         {/* SECTION I: MỤC TIÊU */}
         {(activeTab === "all" || activeTab === "objectives") && (
           <section className="mb-8 space-y-4">
-            <h3 className="text-base font-bold text-blue-900 font-serif border-b border-blue-100 pb-1 flex items-center gap-2">
-              <span>I. MỤC TIÊU BÀI DẠY</span>
+            <h3 className="text-base font-bold text-slate-900 font-serif border-b border-slate-200 pb-1 flex items-center gap-2">
+              <span>I. MỤC TIÊU</span>
             </h3>
 
             {/* 1. Kiến thức */}
             <div className="space-y-1.5 pl-2">
               <h4 className="text-sm font-bold text-slate-900">1. Kiến thức:</h4>
-              <ul className="list-disc list-inside space-y-1 text-xs text-slate-800 leading-relaxed pl-2">
+              <div className="space-y-1 text-xs text-slate-800 leading-relaxed pl-2">
                 {plan.objectives.knowledge.map((k, idx) => (
-                  <li key={idx}>{k}</li>
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="text-slate-500 shrink-0">-</span>
+                    <span>{removeLegacyCompetencyCode(k)}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
             {/* 2. Năng lực */}
@@ -297,12 +432,19 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
               <div className="space-y-1.5 pl-2">
                 <p className="text-xs font-bold text-slate-900">a) Năng lực chung:</p>
                 <div className="space-y-1.5 pl-2">
-                  {plan.objectives.competencies.generalCompetencies.map((gc, idx) => (
-                    <div key={idx} className="text-xs text-slate-800 leading-relaxed">
-                      <span className="font-semibold text-slate-900">• {gc.name} ({gc.code}): </span>
-                      <span>{gc.specificBehaviors.join("; ")}</span>
-                    </div>
-                  ))}
+                  {plan.objectives.competencies.generalCompetencies.map((gc, idx) => {
+                    const cleanName = removeLegacyCompetencyCode(gc.name);
+                    const cleanBehaviors = gc.specificBehaviors.map((b) => removeLegacyCompetencyCode(b)).join("; ");
+                    return (
+                      <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
+                        <span className="text-slate-500 shrink-0">-</span>
+                        <div>
+                          <strong className="text-slate-900">{cleanName}: </strong>
+                          <span>{cleanBehaviors}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -310,12 +452,21 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
               <div className="space-y-1.5 pl-2">
                 <p className="text-xs font-bold text-slate-900">b) Năng lực hóa học (theo CT GDPT 2018):</p>
                 <div className="space-y-1.5 pl-2">
-                  {plan.objectives.competencies.chemistryCompetencies.map((cc, idx) => (
-                    <div key={idx} className="text-xs text-slate-800 leading-relaxed">
-                      <span className="font-semibold text-emerald-800">• {cc.name} ({cc.component}): </span>
-                      <span>{cc.description} <em>(Biểu hiện: {cc.specificBehaviors.join("; ")})</em></span>
-                    </div>
-                  ))}
+                  {plan.objectives.competencies.chemistryCompetencies.map((cc, idx) => {
+                    const cleanName = removeLegacyCompetencyCode(cc.name);
+                    const cleanDesc = removeLegacyCompetencyCode(cc.description);
+                    const cleanBehaviors = cc.specificBehaviors.map((b) => removeLegacyCompetencyCode(b)).join("; ");
+                    return (
+                      <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
+                        <span className="text-emerald-700 shrink-0">-</span>
+                        <div>
+                          <strong className="text-emerald-800">{cleanName}: </strong>
+                          <span>{cleanDesc}</span>
+                          {cleanBehaviors && <span className="italic text-slate-600"> (Biểu hiện: {cleanBehaviors})</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -325,17 +476,24 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                   <div className="space-y-1.5 pl-2">
                     <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                       <Globe className="w-3.5 h-3.5 text-blue-600" />
-                      <span>c) Năng lực số (NLS):</span>
+                      <span>c) Năng lực số (lồng ghép nếu có):</span>
                     </p>
                     <div className="space-y-1 pl-2">
-                      {plan.objectives.competencies.digitalCompetencies.map((dc, idx) => (
-                        <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
-                          <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1 py-0.5 rounded border border-blue-200 text-[11px] shrink-0">
-                            {dc.code}
-                          </span>
-                          <span><strong>{dc.name}:</strong> {dc.evidence}</span>
-                        </div>
-                      ))}
+                      {plan.objectives.competencies.digitalCompetencies.map((dc, idx) => {
+                        const code = formatDigitalCompetencyCode(dc.code);
+                        const desc = removeLegacyCompetencyCode(dc.evidence || dc.name);
+                        return (
+                          <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
+                            <span className="text-blue-600 shrink-0">-</span>
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                              <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 text-[11px]">
+                                {code}
+                              </span>
+                              <span>: {desc}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -346,17 +504,24 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                   <div className="space-y-1.5 pl-2">
                     <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                       <Cpu className="w-3.5 h-3.5 text-purple-600" />
-                      <span>d) Năng lực Trí tuệ nhân tạo (AI theo QĐ 2422/QĐ-BGDĐT):</span>
+                      <span>d) Năng lực AI (theo QĐ 2422/QĐ-BGDĐT):</span>
                     </p>
                     <div className="space-y-1 pl-2">
-                      {plan.objectives.competencies.aiCompetencies.map((ai, idx) => (
-                        <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
-                          <span className="font-mono font-bold text-purple-700 bg-purple-50 px-1 py-0.5 rounded border border-purple-200 text-[11px] shrink-0">
-                            {ai.code}
-                          </span>
-                          <span><strong>{ai.name}:</strong> {ai.evidence}</span>
-                        </div>
-                      ))}
+                      {plan.objectives.competencies.aiCompetencies.map((ai, idx) => {
+                        const code = formatAICode(ai.code);
+                        const desc = removeLegacyCompetencyCode(ai.evidence || ai.name);
+                        return (
+                          <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
+                            <span className="text-purple-600 shrink-0">-</span>
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                              <span className="font-mono font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 text-[11px]">
+                                {code}
+                              </span>
+                              <span>: {desc}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -370,12 +535,22 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                       <span>e) Năng lực tiếng Anh / Danh pháp quốc tế IUPAC:</span>
                     </p>
                     <div className="space-y-1 pl-2">
-                      {plan.objectives.competencies.englishCompetencies.map((eng, idx) => (
-                        <div key={idx} className="text-xs text-slate-800 leading-relaxed">
-                          <span className="font-semibold text-slate-900">• {eng.aspect}: </span>
-                          <span>{eng.evidence} (<em>Thuật ngữ:</em> {eng.terminology.join(", ")})</span>
-                        </div>
-                      ))}
+                      {plan.objectives.competencies.englishCompetencies.map((eng, idx) => {
+                        const aspect = removeLegacyCompetencyCode(eng.aspect);
+                        const evidence = removeLegacyCompetencyCode(eng.evidence);
+                        return (
+                          <div key={idx} className="text-xs text-slate-800 leading-relaxed flex items-start gap-1.5">
+                            <span className="text-emerald-700 shrink-0">-</span>
+                            <div>
+                              <strong className="text-slate-900">{aspect}: </strong>
+                              <span>{evidence}</span>
+                              {eng.terminology?.length ? (
+                                <span className="italic text-slate-600"> (Thuật ngữ: {eng.terminology.join(", ")})</span>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -384,13 +559,17 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
             {/* 3. Phẩm chất */}
             <div className="space-y-1.5 pl-2">
               <h4 className="text-sm font-bold text-slate-900">3. Phẩm chất:</h4>
-              <ul className="list-disc list-inside space-y-1 text-xs text-slate-800 leading-relaxed pl-2">
+              <div className="space-y-1 text-xs text-slate-800 leading-relaxed pl-2">
                 {plan.objectives.qualities.map((q, idx) => (
-                  <li key={idx}>
-                    <strong className="text-slate-900">{q.name}:</strong> {q.evidence}
-                  </li>
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="text-slate-500 shrink-0">-</span>
+                    <div>
+                      <strong className="text-slate-900">{removeLegacyCompetencyCode(q.name)}: </strong>
+                      <span>{removeLegacyCompetencyCode(q.evidence)}</span>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </section>
         )}
@@ -412,11 +591,11 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
           </section>
         )}
 
-        {/* SECTION III: TIẾN TRÌNH DẠY HỌC */}
+        {/* SECTION IV: TIẾN TRÌNG DẠY HỌC */}
         {(activeTab === "all" || activeTab === "activities") && (
           <section className="mb-8 space-y-6">
             <h3 className="text-base font-bold text-blue-900 font-serif border-b border-blue-100 pb-1">
-              III. TIẾN TRÌNG DẠY HỌC
+              IV. TIẾN TRÌNG DẠY HỌC
             </h3>
 
             {plan.learningActivities.map((activity, idx) => (
@@ -441,10 +620,10 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                 </div>
 
                 {/* Big Question if any */}
-                {activity.bigQuestion && (
-                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start gap-2">
-                    <span className="font-bold text-amber-700 shrink-0">★ Câu hỏi lớn / Vấn đề:</span>
-                    <span className="italic">{activity.bigQuestion}</span>
+                {activity.bigQuestion && cleanBigQuestion(activity.bigQuestion) && (
+                  <div className="p-2.5 bg-amber-50/90 border border-amber-200 rounded-lg text-xs text-amber-950 flex items-start gap-2">
+                    <strong className="font-bold text-amber-900 shrink-0">Câu hỏi lớn:</strong>
+                    <span className="italic">{cleanBigQuestion(activity.bigQuestion)}</span>
                   </div>
                 )}
 
@@ -455,44 +634,46 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                   <p><strong className="text-slate-900">c) Sản phẩm:</strong> {activity.product}</p>
                 </div>
 
-                {/* d) Tổ chức thực hiện - 2-Column Table */}
+                {/* d) Tổ chức thực hiện - 3-Column Table */}
                 <div className="space-y-1.5">
                   <p className="text-xs font-bold text-slate-900">d) Tổ chức thực hiện:</p>
-                  <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs">
-                    <table className="w-full text-xs text-left border-collapse">
+                  <div className="overflow-x-auto">
+                    <table className="org-table">
                       <thead>
-                        <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
-                          <th className="p-2.5 w-1/2 border-r border-slate-300 text-center uppercase tracking-wide">
-                            Hoạt động của Giáo viên
-                          </th>
-                          <th className="p-2.5 w-1/2 text-center uppercase tracking-wide">
-                            Hoạt động của Học sinh
-                          </th>
+                        <tr>
+                          <th style={{ width: "36%" }}>HOẠT ĐỘNG CỦA GV</th>
+                          <th style={{ width: "36%" }}>HOẠT ĐỘNG CỦA HS</th>
+                          <th style={{ width: "28%" }}>NỘI DUNG GHI BẢNG</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {Array.from({
-                          length: Math.max(
-                            activity.organization.teacherActivities.length,
-                            activity.organization.studentActivities.length
-                          )
-                        }).map((_, pIdx) => {
-                          const tPhase = activity.organization.teacherActivities[pIdx] || { phase: "", details: "" };
-                          const sPhase = activity.organization.studentActivities[pIdx] || { phase: "", details: "" };
+                      <tbody>
+                        {normalizePhases(activity.organization).map((phase, pIdx) => {
+                          const teacherItems = Array.isArray(phase.teacher) ? phase.teacher : [];
+                          const studentItems = Array.isArray(phase.student)
+                            ? phase.student.map(removePhasePrefix)
+                            : [];
+                          const boardItems = Array.isArray(phase.boardContent)
+                            ? phase.boardContent.map(removePhasePrefix)
+                            : [];
 
                           return (
-                            <tr key={pIdx} className="hover:bg-slate-50/60">
-                              <td className="p-3 w-1/2 border-r border-slate-200 align-top space-y-1">
-                                {tPhase.phase && (
-                                  <p className="font-bold text-blue-900">• {tPhase.phase}:</p>
-                                )}
-                                <p className="text-slate-800 whitespace-pre-line leading-relaxed">{tPhase.details}</p>
+                            <tr key={`${phase.phase}-${pIdx}`}>
+                              {/* Cột 1: Hoạt động của GV */}
+                              <td>
+                                <p className="font-bold text-slate-900 mb-1">
+                                  {phase.phase}:
+                                </p>
+                                <TextList items={teacherItems} useDash={false} />
                               </td>
-                              <td className="p-3 w-1/2 align-top space-y-1">
-                                {sPhase.phase && (
-                                  <p className="font-bold text-indigo-900">• {sPhase.phase}:</p>
-                                )}
-                                <p className="text-slate-800 whitespace-pre-line leading-relaxed">{sPhase.details}</p>
+
+                              {/* Cột 2: Hoạt động của HS (không lặp lại tên pha) */}
+                              <td>
+                                <TextList items={studentItems} useDash={false} />
+                              </td>
+
+                              {/* Cột 3: Nội dung ghi bảng */}
+                              <td>
+                                <TextList items={boardItems} useDash={false} />
                               </td>
                             </tr>
                           );
@@ -502,23 +683,16 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
                   </div>
                 </div>
 
-                {/* e) Đánh giá */}
-                {activity.assessment && (
-                  <div className="text-xs text-slate-700 italic bg-white p-2 rounded border border-slate-200">
-                    <strong>e) Đánh giá:</strong> Phương pháp: {activity.assessment.method} | Tiêu chí: {activity.assessment.criteria}
-                  </div>
-                )}
-
               </div>
             ))}
           </section>
         )}
 
-        {/* SECTION IV: PHỤ LỤC */}
+        {/* SECTION V: PHỤ LỤC */}
         {(activeTab === "all" || activeTab === "appendices") && plan.appendices && (
           <section className="space-y-6">
             <h3 className="text-base font-bold text-blue-900 font-serif border-b border-blue-100 pb-1">
-              IV. PHỤ LỤC & HỌC LIỆU
+              V. PHỤ LỤC & HỌC LIỆU
             </h3>
 
             {/* Worksheets */}
