@@ -1,0 +1,17 @@
+Hãy tạo/khôi phục chính xác ứng dụng full-stack React + Node.js từ các file mã nguồn tôi cung cấp.
+
+Yêu cầu bắt buộc:
+1. Frontend React + TypeScript, backend Node/Express.
+2. Gemini API chỉ được gọi ở server, lấy khóa từ GEMINI_API_KEY trong Secrets; tuyệt đối không đưa API key xuống client.
+3. Dùng @google/genai và mặc định model gemini-3.7-flash; có tùy chọn gemini-3.1-pro-preview.
+4. Endpoint POST /api/generate nhận multipart/form-data gồm settings JSON và tối đa 8 file PDF/DOCX/TXT/MD/CSV/PNG/JPG/WEBP.
+5. PDF/ảnh gửi trực tiếp vào Gemini dạng inlineData; DOCX đọc bằng mammoth; text đọc UTF-8.
+6. Kết quả Gemini phải dùng structured JSON theo schema trong server/schema.ts.
+7. Prompt lõi và danh mục mã NLS/AI phải giữ nguyên nội dung trong server/prompt.ts và server/reference.ts; không rút gọn.
+8. Mỗi tiết 45 phút, đủ Khởi động - Hình thành kiến thức - Luyện tập - Vận dụng; mỗi nội dung lớn là một hoạt động; tăng câu hỏi lớn/vấn đề lớn, khám phá, phản biện.
+9. Mục 2. Năng lực phải đúng cấu trúc: a) năng lực chung, b) năng lực hóa học, c) năng lực số nếu có, d) năng lực AI nếu có, e) năng lực tiếng Anh nếu có.
+10. Mục 3. Phẩm chất chỉ chọn trong Yêu nước - Nhân ái - Chăm chỉ - Trung thực - Trách nhiệm, chỉ chọn phẩm chất có hoạt động minh chứng.
+11. Tổ chức thực hiện hiển thị 2 cột Hoạt động của giáo viên / Hoạt động của học sinh, có 4 pha nhưng không ghi chữ Bước 1/Bước 2/Bước 3/Bước 4.
+12. Nút Xuất file Word (.docx) phải hoạt động hoàn toàn phía client bằng package docx, định dạng A4, Times New Roman 13, bảng 2 cột rõ ràng.
+13. Giữ giao diện gọn, nút có viền rõ, dễ nhìn, responsive.
+14. Sau khi tạo, tự kiểm tra build và sửa mọi lỗi TypeScript/runtime trước khi hoàn tất.
