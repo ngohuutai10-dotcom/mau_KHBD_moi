@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { KHBDForm } from "./components/KHBDForm";
 import { KHBDViewer } from "./components/KHBDViewer";
 import { ReferenceModal } from "./components/ReferenceModal";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import type { GenerateSettings, LessonPlan } from "./types";
 
 export type AppView = "editor" | "result";
@@ -163,12 +164,14 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {view === "result" && currentPlan ? (
-          <KHBDViewer
-            plan={currentPlan}
-            onUpdatePlan={handleUpdatePlan}
-            onBackToForm={handleEditLesson}
-            onNewLesson={handleNewLesson}
-          />
+          <AppErrorBoundary>
+            <KHBDViewer
+              plan={currentPlan}
+              onUpdatePlan={handleUpdatePlan}
+              onBackToForm={handleEditLesson}
+              onNewLesson={handleNewLesson}
+            />
+          </AppErrorBoundary>
         ) : (
           <KHBDForm
             settings={settings}

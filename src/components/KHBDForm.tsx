@@ -20,6 +20,7 @@ import {
 import type { GenerateSettings, LessonPlan, OrganizationType } from "../types";
 import { ORGANIZATION_TYPES } from "../constants/organizationTypes";
 import { SAMPLE_LESSON_PLAN_EQUILIBRIUM } from "./SampleLessonPlans";
+import { generateKHBD, ApiError } from "../utils/api";
 
 interface KHBDFormProps {
   settings?: GenerateSettings;
@@ -195,44 +196,22 @@ export const KHBDForm: React.FC<KHBDFormProps> = ({
         formData.append("files", file);
       }
 
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        body: formData
-      });
-
-      const contentType = response.headers.get("content-type") || "";
-      const rawText = await response.text();
+      const lessonPlan = await generateKHBD(formData);
       clearInterval(stepInterval);
 
-      // Check if server returned HTML instead of JSON
-      if (
-        contentType.includes("text/html") ||
-        rawText.trim().toLowerCase().startsWith("<!doctype") ||
-        rawText.trim().toLowerCase().startsWith("<html")
-      ) {
-        throw new Error("Không kết nối được API backend /api/generate hoặc máy chủ phản hồi trang web thay vì dữ liệu JSON.");
-      }
-
-      let data: any;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        throw new Error("Dữ liệu phản hồi từ máy chủ không đúng định dạng JSON: " + rawText.slice(0, 120));
-      }
-
-      if (!response.ok || data.ok === false || data.success === false) {
-        throw new Error(data.error || "Không thể tạo Kế hoạch bài dạy. Vui lòng kiểm tra lại cấu hình hoặc API Key.");
-      }
-
-      if (data.lessonPlan) {
-        onGenerateSuccess(data.lessonPlan);
+      if (lessonPlan) {
+        onGenerateSuccess(lessonPlan);
       } else {
-        throw new Error("Dữ liệu phản hồi từ máy chủ không chứa cấu trúc Kế hoạch bài dạy hợp lệ.");
+        throw new Error("Không nhận được dữ liệu Kế hoạch bài dạy từ máy chủ.");
       }
     } catch (err: any) {
       clearInterval(stepInterval);
-      console.error("Lỗi khi soạn KHBD:", err);
-      setErrorMessage(err.message || "Đã xảy ra lỗi trong quá trình tạo Kế hoạch bài dạy.");
+      console.error("GENERATE_KHBD_ERROR:", err);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Đã xảy ra lỗi trong quá trình tạo Kế hoạch bài dạy."
+      );
     } finally {
       setIsLoading(false);
     }

@@ -1,35 +1,51 @@
 @import "tailwindcss";
 
 @layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans;
+    @apply bg-slate-100 text-slate-900 antialiased font-sans;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
   }
 }
 
 /* KHBD Preview Wrapper for horizontal scroll on smaller screens */
 .khbd-preview-wrapper {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
-  padding: 16px 0;
+  overflow-y: visible;
   box-sizing: border-box;
+  padding: 16px;
+  background: #e5e7eb;
 }
 
-/* A4 Landscape Document Preview Container (297mm x 210mm) */
+/* A4 Landscape Document Preview Container (Responsive simulated A4 landscape) */
 .khbd-page {
-  width: 297mm;
-  min-height: 210mm;
-  margin: 0 auto 20px auto;
+  width: 100%;
+  max-width: 1120px;
+  min-width: 900px;
+  min-height: 760px;
+  height: auto;
+  margin: 0 auto;
   padding: 15mm 10mm 15mm 20mm;
   box-sizing: border-box;
-  background: #fff;
+  background: #ffffff;
+  color: #000000;
   font-family: "Times New Roman", Times, serif;
   font-size: 12pt;
   line-height: 1.2;
-  color: #000;
+  overflow: visible;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  border: 1px solid #d1d5db;
 }
 
 .document-preview {
@@ -84,6 +100,7 @@
 .khbd-table,
 .org-table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   border: 1px solid #000;
   table-layout: fixed;
@@ -97,6 +114,9 @@
   padding: 6px 8px;
   vertical-align: top;
   background: #fff;
+  color: #000;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .khbd-table th,
@@ -105,6 +125,21 @@
   text-align: center;
   background-color: #fff !important;
   color: #000 !important;
+}
+
+.org-table th:nth-child(1),
+.org-table td:nth-child(1) {
+  width: 36%;
+}
+
+.org-table th:nth-child(2),
+.org-table td:nth-child(2) {
+  width: 36%;
+}
+
+.org-table th:nth-child(3),
+.org-table td:nth-child(3) {
+  width: 28%;
 }
 
 .org-table td {
@@ -229,10 +264,12 @@
 @media print {
   html,
   body {
+    width: auto !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: white !important;
-    color: black !important;
+    background: #fff !important;
+    color: #000 !important;
   }
   .no-print {
     display: none !important;
@@ -241,8 +278,11 @@
     display: block !important;
   }
   .khbd-preview-wrapper {
-    padding: 0 !important;
+    display: block !important;
+    width: auto !important;
     overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
   .khbd-page,
   .document-preview {
@@ -251,7 +291,9 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    max-width: 100% !important;
-    min-height: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    background: #fff !important;
   }
 }

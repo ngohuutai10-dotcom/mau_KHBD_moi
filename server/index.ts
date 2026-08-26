@@ -248,7 +248,7 @@ function sanitizeAndRepairPlan(plan: LessonPlan): void {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Configure multer memory storage
 const upload = multer({
@@ -282,9 +282,14 @@ const upload = multer({
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Health Check API
+// Health Check API - Immediate 200 response
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, status: "ok", timestamp: new Date().toISOString() });
+  res.status(200).json({
+    ok: true,
+    service: "KHBD Hoa hoc THPT",
+    status: "ok",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Reference Framework API
@@ -547,9 +552,14 @@ async function initServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server Kế hoạch bài dạy Hóa học THPT đang chạy trên port ${PORT}`);
   });
+
+  // Ensure long AI generation requests do not get severed by Node default socket timeout
+  server.setTimeout(0);
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
 }
 
 initServer().catch((err) => {
