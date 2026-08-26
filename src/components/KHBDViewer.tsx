@@ -408,7 +408,8 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
       </div>
 
       {/* Main Document Content Area */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-10 document-preview">
+      <div className="khbd-preview-wrapper">
+        <div className="khbd-page document-preview">
         
         {/* Document Header */}
         <div className="khbd-document-header pb-4 mb-6 border-b border-slate-200">
@@ -894,6 +895,7 @@ export const KHBDViewer: React.FC<KHBDViewerProps> = ({
           </section>
         )}
 
+        </div>
       </div>
     </div>
   );

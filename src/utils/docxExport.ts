@@ -1,19 +1,21 @@
 import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
   AlignmentType,
   BorderStyle,
-  HeadingLevel,
-  Header,
+  Document,
   Footer,
+  Header,
+  HeadingLevel,
+  LineRuleType,
+  Packer,
   PageNumber,
-  ShadingType
+  PageOrientation,
+  Paragraph,
+  ShadingType,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+  WidthType
 } from "docx";
 import saveAs from "file-saver";
 import type { LessonPlan, LearningActivity, Worksheet, Rubric } from "../types";
@@ -31,6 +33,29 @@ import {
   sanitizeWorksheetContent,
   DEFAULT_GROUP_ASSESSMENT_CRITERIA
 } from "./worksheetHelper";
+
+export const cmToTwip = (cm: number): number => {
+  return Math.round((cm / 2.54) * 1440);
+};
+
+export const A4_LANDSCAPE_WIDTH = cmToTwip(29.7);
+export const A4_LANDSCAPE_HEIGHT = cmToTwip(21);
+
+export const LANDSCAPE_PAGE_PROPERTIES = {
+  page: {
+    size: {
+      orientation: PageOrientation.LANDSCAPE,
+      width: A4_LANDSCAPE_WIDTH,
+      height: A4_LANDSCAPE_HEIGHT
+    },
+    margin: {
+      top: cmToTwip(1.5),
+      bottom: cmToTwip(1.5),
+      left: cmToTwip(2),
+      right: cmToTwip(1)
+    }
+  }
+};
 
 export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
   const font = "Times New Roman";
@@ -1359,24 +1384,34 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
     }
   }
 
-  // Create docx Document with A4 setup and margins:
-  // Top: 1.5 cm = 851 twips
-  // Bottom: 1.5 cm = 851 twips
-  // Left: 2.0 cm = 1134 twips
-  // Right: 1.0 cm = 567 twips
+  // Create docx Document with A4 Landscape setup and margins:
+  // Orientation: Landscape (29.7cm x 21cm)
+  // Top: 1.5 cm
+  // Bottom: 1.5 cm
+  // Left: 2.0 cm
+  // Right: 1.0 cm
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: "Times New Roman",
+            size: defaultSize,
+          },
+          paragraph: {
+            spacing: {
+              line: defaultLineSpacing,
+              lineRule: LineRuleType.AUTO,
+              before: 0,
+              after: 0,
+            },
+          },
+        },
+      },
+    },
     sections: [
       {
-        properties: {
-          page: {
-            margin: {
-              top: 851,    // 1.5 cm
-              bottom: 851, // 1.5 cm
-              left: 1134,  // 2.0 cm
-              right: 567   // 1.0 cm
-            }
-          }
-        },
+        properties: LANDSCAPE_PAGE_PROPERTIES,
         headers: {
           default: new Header({
             children: [
@@ -1385,7 +1420,7 @@ export async function exportLessonPlanToDocx(plan: LessonPlan): Promise<void> {
                 spacing: { line: defaultLineSpacing },
                 children: [
                   new TextRun({
-                    text: `KHBD: ${plan.header.lessonTitle} - Môn Hóa học`,
+                    text: `KHBD: ${plan.header.lessonTitle || plan.header.lessonName} - Môn Hóa học`,
                     font,
                     size: 18,
                     italics: true,

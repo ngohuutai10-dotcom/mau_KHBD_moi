@@ -7,8 +7,50 @@
   }
 }
 
+/* KHBD Preview Wrapper for horizontal scroll on smaller screens */
+.khbd-preview-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 16px 0;
+  box-sizing: border-box;
+}
+
+/* A4 Landscape Document Preview Container (297mm x 210mm) */
+.khbd-page {
+  width: 297mm;
+  min-height: 210mm;
+  margin: 0 auto 20px auto;
+  padding: 15mm 10mm 15mm 20mm;
+  box-sizing: border-box;
+  background: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 1.2;
+  color: #000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+}
+
 .document-preview {
   font-family: "Times New Roman", Times, serif;
+}
+
+.khbd-page table,
+.document-preview table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.khbd-page th,
+.khbd-page td,
+.document-preview th,
+.document-preview td {
+  overflow-wrap: anywhere;
+  word-break: normal;
+  vertical-align: top;
 }
 
 .khbd-document-header {
@@ -44,6 +86,7 @@
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #000;
+  table-layout: fixed;
 }
 
 .khbd-table th,
@@ -78,6 +121,7 @@
   font-size: 12pt;
   line-height: 1.2;
   color: #000;
+  box-sizing: border-box;
 }
 
 .worksheet-title {
@@ -118,6 +162,7 @@
   border-collapse: collapse;
   border: 1px solid #000;
   margin: 6px 0;
+  table-layout: fixed;
 }
 
 .worksheet-box th,
@@ -143,6 +188,7 @@
   font-family: "Times New Roman", Times, serif;
   font-size: 12pt;
   color: #000;
+  table-layout: fixed;
 }
 
 .assessment-checklist-table th,
@@ -174,8 +220,17 @@
   color: #64748b;
 }
 
+/* Print / PDF settings for A4 Landscape */
+@page {
+  size: A4 landscape;
+  margin: 1.5cm 1cm 1.5cm 2cm;
+}
+
 @media print {
+  html,
   body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: white !important;
     color: black !important;
   }
@@ -185,11 +240,18 @@
   .print-only {
     display: block !important;
   }
+  .khbd-preview-wrapper {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .khbd-page,
   .document-preview {
     box-shadow: none !important;
     border: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
+    min-height: auto !important;
   }
 }
